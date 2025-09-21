@@ -1,0 +1,15 @@
+{
+  "name": "floating-cam",
+  "version": "0.1.0",
+  "description": "Cross-platform floating always-on-top mirror camera window (macOS/Windows/Linux)",
+  "main": "main.js",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging"
+  },
+  "devDependencies": {
+    "electron": "^31.3.0"
+  }
+}
