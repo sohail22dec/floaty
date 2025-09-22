@@ -1,0 +1,72 @@
+{
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn"],
+    "no-console": ["warn"],
+    "no-debugger": ["error"],
+    "prefer-const": ["error"],
+    "arrow-spacing": ["error"],
+    "comma-dangle": ["error", "never"],
+    "eol-last": ["error"],
+    "no-trailing-spaces": ["error"],
+    "object-curly-spacing": ["error", "always"],
+    "array-bracket-spacing": ["error", "never"],
+    "key-spacing": ["error"],
+    "keyword-spacing": ["error"],
+    "space-before-blocks": ["error"],
+    "space-in-parens": ["error", "never"],
+    "spaced-comment": ["error", "always"]
+  },
+  "globals": {
+    "window": "readonly",
+    "document": "readonly",
+    "navigator": "readonly",
+    "console": "readonly",
+    "process": "readonly",
+    "__dirname": "readonly",
+    "__filename": "readonly",
+    "require": "readonly",
+    "module": "readonly",
+    "exports": "readonly",
+    "Buffer": "readonly",
+    "global": "readonly"
+  },
+  "overrides": [
+    {
+      "files": ["src/renderer/**/*.js"],
+      "env": {
+        "browser": true,
+        "node": false
+      },
+      "globals": {
+        "floatingCam": "readonly",
+        "electronAPI": "readonly",
+        "systemInfo": "readonly",
+        "devTools": "readonly"
+      }
+    },
+    {
+      "files": ["src/main/**/*.js", "src/main.js"],
+      "env": {
+        "node": true,
+        "browser": false
+      }
+    }
+  ]
+}
