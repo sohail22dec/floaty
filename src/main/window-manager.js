@@ -9,10 +9,14 @@ class WindowManager {
 
   createWindow() {
     this.window = new BrowserWindow({
-      width: 360,
-      height: 480,
+      width: 320,
+      height: 240,
       minWidth: 160,
       minHeight: 160,
+      maxWidth: 600,
+      maxHeight: 600,
+      maximizable: false,
+      fullscreenable: false,
       transparent: true,
       frame: false,
       alwaysOnTop: true,
@@ -32,13 +36,17 @@ class WindowManager {
     });
 
     // Enhanced window properties for floating behavior
-    this.window.setAlwaysOnTop(true, 'screen-saver');
-    this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    this.setAlwaysOnTop(true);
     
     // Hide dock icon on macOS for cleaner experience
     if (process.platform === 'darwin') {
       app.dock.hide();
     }
+
+    // Forward renderer console logs
+    this.window.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      console.log(`[Renderer] ${message}`);
+    });
 
     // Load the renderer
     this.window.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -96,6 +104,19 @@ class WindowManager {
       } else {
         this.showWindow();
       }
+    }
+  }
+
+  setAlwaysOnTop(flag) {
+    if (!this.window) return;
+    const shouldBeOnTop = Boolean(flag);
+    if (process.platform === 'darwin') {
+      this.window.setAlwaysOnTop(shouldBeOnTop, 'screen-saver');
+      this.window.setVisibleOnAllWorkspaces(shouldBeOnTop, { visibleOnFullScreen: true });
+    } else {
+      // On Linux/Windows, 'floating' or normal always-on-top
+      this.window.setAlwaysOnTop(shouldBeOnTop, 'floating');
+      this.window.setVisibleOnAllWorkspaces(shouldBeOnTop);
     }
   }
 

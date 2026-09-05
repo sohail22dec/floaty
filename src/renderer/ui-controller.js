@@ -25,15 +25,19 @@ class UIController {
       contentArea: document.getElementById('contentArea'),
 
       // Controls
+      toolbarCircleBtn: document.getElementById('toolbarCircleBtn'),
+      toolbarPinBtn: document.getElementById('toolbarPinBtn'),
       toggleBtn: document.getElementById('toggleBtn'),
       controlsOverlay: document.getElementById('controlsOverlay'),
       closeOverlayBtn: document.getElementById('closeOverlayBtn'),
 
       // Action buttons
+      pinBtn: document.getElementById('pinBtn'),
       flipBtn: document.getElementById('flipBtn'),
       circleBtn: document.getElementById('circleBtn'),
       opacityBtn: document.getElementById('opacityBtn'),
       settingsBtn: document.getElementById('settingsBtn'),
+      hideBarBtn: document.getElementById('hideBarBtn'),
 
       // Radius control
       radiusRange: document.getElementById('radiusRange'),
@@ -79,7 +83,20 @@ class UIController {
       }
     });
 
+    // Always on top / Sticky controls
+    this.elements.toolbarPinBtn?.addEventListener('click', () => {
+      this.toggleAlwaysOnTop();
+    });
+
+    this.elements.pinBtn?.addEventListener('click', () => {
+      this.toggleAlwaysOnTop();
+    });
+
     // Camera controls
+    this.elements.toolbarCircleBtn?.addEventListener('click', () => {
+      this.toggleCircle();
+    });
+
     this.elements.flipBtn?.addEventListener('click', () => {
       window.cameraManager?.toggleFlip();
     });
@@ -122,6 +139,10 @@ class UIController {
       this.showPreferences();
     });
 
+    this.elements.hideBarBtn?.addEventListener('click', () => {
+      this.toggleToolbarVisibility();
+    });
+
     // Device selection
     this.elements.deviceSelect?.addEventListener('change', (e) => {
       if (e.target.value && window.cameraManager) {
@@ -131,6 +152,9 @@ class UIController {
 
     // Resize handle
     this.setupResizeHandle();
+
+    // Draggable window from video
+    this.setupWindowDragging();
 
     // Listen for camera events
     this.setupCameraEventListeners();
@@ -209,6 +233,14 @@ class UIController {
         case 'S':
           this.toggleSizePanel();
           break;
+        case 'h':
+        case 'H':
+          this.toggleToolbarVisibility();
+          break;
+        case 'p':
+        case 'P':
+          this.toggleAlwaysOnTop();
+          break;
       }
     });
   }
@@ -236,16 +268,33 @@ class UIController {
     }
   }
 
-  toggleCircle() {
+  async toggleCircle() {
     this.state.isCircle = !this.state.isCircle;
     document.body.classList.toggle('circle', this.state.isCircle);
 
-    if (!this.state.isCircle) {
-      // Restore custom radius
+    if (this.state.isCircle) {
+      // Save rectangle dimensions before converting to circle
+      try {
+        const currentSize = await window.floatingCam?.getWindowSize();
+        if (currentSize) {
+          this.savedRectSize = currentSize;
+          // Set to a square 1:1 aspect ratio so it's a true, perfect circle (Loom style)
+          const diameter = Math.min(currentSize.width, currentSize.height);
+          await window.floatingCam?.setWindowSize(diameter, diameter);
+        }
+      } catch (err) {
+        console.warn('Could not set circle size:', err);
+      }
+    } else {
+      // Restore previous rectangular size and custom radius
+      if (this.savedRectSize) {
+        await window.floatingCam?.setWindowSize(this.savedRectSize.width, this.savedRectSize.height);
+      }
       this.updateBorderRadius(this.state.borderRadius);
     }
 
     this.updateCircleButton();
+    this.showStatus(this.state.isCircle ? 'Circle mode enabled' : 'Rectangle mode enabled', 'info');
   }
 
   cycleOpacity() {
@@ -404,6 +453,9 @@ class UIController {
   updateCircleButton() {
     if (this.elements.circleBtn) {
       this.elements.circleBtn.classList.toggle('active', this.state.isCircle);
+    }
+    if (this.elements.toolbarCircleBtn) {
+      this.elements.toolbarCircleBtn.classList.toggle('active', this.state.isCircle);
     }
   }
 
@@ -569,4 +621,86 @@ class UIController {
       this.elements.deviceSelection.style.display = 'none';
     }
   }
-}window.UIController = UIController;
+
+  async toggleAlwaysOnTop() {
+    if (window.floatingCam?.toggleAlwaysOnTop) {
+      const isTop = await window.floatingCam.toggleAlwaysOnTop();
+      this.updateAlwaysOnTopUI(isTop);
+      if (window.settingsManager) {
+        window.settingsManager.set('window.alwaysOnTop', isTop);
+      }
+      this.showStatus(isTop ? 'Always on Top enabled' : 'Always on Top disabled', 'info');
+    }
+  }
+
+  updateAlwaysOnTopUI(isTop) {
+    this.state.isAlwaysOnTop = isTop;
+    if (this.elements.toolbarPinBtn) {
+      this.elements.toolbarPinBtn.classList.toggle('active', isTop);
+      this.elements.toolbarPinBtn.title = isTop ? 'Always on Top: ON (Sticky)' : 'Always on Top: OFF';
+    }
+    if (this.elements.pinBtn) {
+      this.elements.pinBtn.classList.toggle('active', isTop);
+      this.elements.pinBtn.title = isTop ? 'Always on Top: ON (Sticky)' : 'Always on Top: OFF';
+    }
+  }
+
+  toggleToolbarVisibility() {
+    this.state.toolbarHidden = !this.state.toolbarHidden;
+    document.body.classList.toggle('toolbar-hidden', this.state.toolbarHidden);
+    if (this.elements.hideBarBtn) {
+      this.elements.hideBarBtn.classList.toggle('active', this.state.toolbarHidden);
+      const label = this.elements.hideBarBtn.querySelector('span:last-child');
+      if (label) {
+        label.textContent = this.state.toolbarHidden ? 'Show Bar' : 'Hide Bar';
+      }
+    }
+    this.showStatus(this.state.toolbarHidden ? 'Top bar hidden (Press H to restore)' : 'Top bar visible', 'info');
+  }
+
+  setupWindowDragging() {
+    let isDragging = false;
+    let startScreenX = 0;
+    let startScreenY = 0;
+    let startWinX = 0;
+    let startWinY = 0;
+
+    const dragTarget = this.elements.contentArea || this.elements.app;
+    if (!dragTarget) return;
+
+    dragTarget.addEventListener('mousedown', async (e) => {
+      // Don't drag if clicking buttons, inputs, controls overlay or resize handle
+      if (e.button !== 0) return;
+      if (e.target.closest('button, input, select, #resizeHandle, .controls-overlay, .toolbar')) return;
+
+      try {
+        const pos = await window.floatingCam?.getWindowPosition();
+        if (!pos) return;
+        isDragging = true;
+        startScreenX = e.screenX;
+        startScreenY = e.screenY;
+        startWinX = pos.x;
+        startWinY = pos.y;
+        document.body.style.userSelect = 'none';
+      } catch (err) {
+        console.warn('Drag initialization error:', err);
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.screenX - startScreenX;
+      const dy = e.screenY - startScreenY;
+      window.floatingCam?.setWindowPosition(Math.round(startWinX + dx), Math.round(startWinY + dy));
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.style.userSelect = '';
+      }
+    });
+  }
+}
+
+window.UIController = UIController;

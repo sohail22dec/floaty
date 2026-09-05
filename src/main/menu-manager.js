@@ -79,12 +79,12 @@ class MenuManager {
           },
           {
             label: 'Toggle Always On Top',
-            accelerator: 'Cmd+Alt+T',
+            accelerator: 'Cmd+Alt+P',
             click: () => {
               const window = this.windowManager.getWindow();
               if (window) {
-                const isAlwaysOnTop = window.isAlwaysOnTop();
-                window.setAlwaysOnTop(!isAlwaysOnTop, 'screen-saver');
+                const nextState = !window.isAlwaysOnTop();
+                this.windowManager.setAlwaysOnTop(nextState);
               }
             }
           },

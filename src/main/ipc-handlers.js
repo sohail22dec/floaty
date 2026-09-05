@@ -19,8 +19,8 @@ class IPCHandlers {
       const window = this.windowManager.getWindow();
       if (!window) return false;
       
-      const w = Math.max(160, Math.min(1600, parseInt(width, 10)) || 0);
-      const h = Math.max(160, Math.min(1600, parseInt(height, 10)) || 0);
+      const w = Math.max(160, Math.min(600, parseInt(width, 10)) || 0);
+      const h = Math.max(160, Math.min(600, parseInt(height, 10)) || 0);
       
       if (w && h) {
         window.setSize(w, h, true);
@@ -49,9 +49,23 @@ class IPCHandlers {
       const window = this.windowManager.getWindow();
       if (!window) return false;
       
-      const isAlwaysOnTop = window.isAlwaysOnTop();
-      window.setAlwaysOnTop(!isAlwaysOnTop, 'screen-saver');
-      return !isAlwaysOnTop;
+      const nextState = !window.isAlwaysOnTop();
+      this.windowManager.setAlwaysOnTop(nextState);
+      return nextState;
+    });
+
+    ipcMain.handle('set-always-on-top', (event, flag) => {
+      const window = this.windowManager.getWindow();
+      if (!window) return false;
+      
+      this.windowManager.setAlwaysOnTop(Boolean(flag));
+      return window.isAlwaysOnTop();
+    });
+
+    ipcMain.handle('is-always-on-top', () => {
+      const window = this.windowManager.getWindow();
+      if (!window) return false;
+      return window.isAlwaysOnTop();
     });
 
     ipcMain.handle('minimize-window', () => {

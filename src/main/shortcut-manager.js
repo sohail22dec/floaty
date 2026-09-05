@@ -32,12 +32,13 @@ class ShortcutManager {
       this.windowManager.toggleWindow();
     }, 'Toggle Window Visibility');
 
-    // Toggle always on top
-    this.registerShortcut('CommandOrControl+Alt+T', () => {
+    // Toggle always on top (P for Pin, avoids Ubuntu Ctrl+Alt+T terminal shortcut conflict)
+    this.registerShortcut('CommandOrControl+Alt+P', () => {
       const window = this.windowManager.getWindow();
       if (window) {
-        const isAlwaysOnTop = window.isAlwaysOnTop();
-        window.setAlwaysOnTop(!isAlwaysOnTop, 'screen-saver');
+        const nextState = !window.isAlwaysOnTop();
+        this.windowManager.setAlwaysOnTop(nextState);
+        window.webContents.send('message', { type: 'always-on-top-changed', value: nextState });
       }
     }, 'Toggle Always On Top');
 

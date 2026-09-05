@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('floatingCam', {
   
   // Window state
   toggleAlwaysOnTop: () => ipcRenderer.invoke('toggle-always-on-top'),
+  setAlwaysOnTop: (flag) => ipcRenderer.invoke('set-always-on-top', flag),
+  isAlwaysOnTop: () => ipcRenderer.invoke('is-always-on-top'),
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
   hideWindow: () => ipcRenderer.invoke('hide-window'),
   showWindow: () => ipcRenderer.invoke('show-window'),

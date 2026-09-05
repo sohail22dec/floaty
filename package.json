@@ -27,8 +27,8 @@
     "cross-platform"
   ],
   "scripts": {
-    "start": "electron .",
-    "dev": "NODE_ENV=development electron . --enable-logging",
+    "start": "electron . --no-sandbox",
+    "dev": "NODE_ENV=development electron . --enable-logging --no-sandbox",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:mac-arm": "electron-builder --mac --arm64",
@@ -47,7 +47,7 @@
     "clean": "rm -rf dist build node_modules/.cache"
   },
   "devDependencies": {
-    "electron": "^31.3.0",
+    "electron": "^31.7.7",
     "electron-builder": "^24.13.3",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5"

@@ -11,8 +11,8 @@ class SettingsManager {
     return {
       // Window settings
       window: {
-        width: 360,
-        height: 480,
+        width: 320,
+        height: 240,
         alwaysOnTop: true,
         opacity: 1.0,
         borderRadius: 16
@@ -64,6 +64,15 @@ class SettingsManager {
       if (stored) {
         const parsedSettings = JSON.parse(stored);
         this.settings = this.mergeSettings(this.getDefaultSettings(), parsedSettings);
+        // Sanitize window dimensions to prevent oversized window on Linux
+        if (this.settings.window) {
+          if (!this.settings.window.width || this.settings.window.width > 500) {
+            this.settings.window.width = 320;
+          }
+          if (!this.settings.window.height || this.settings.window.height > 500) {
+            this.settings.window.height = 240;
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -227,12 +236,16 @@ class SettingsManager {
     if (window.floatingCam) {
       // Apply window size
       if (settings.width && settings.height) {
-        await window.floatingCam.setWindowSize(settings.width, settings.height);
+        const w = Math.min(Math.max(settings.width, 160), 500);
+        const h = Math.min(Math.max(settings.height, 160), 500);
+        await window.floatingCam.setWindowSize(w, h);
       }
       
       // Apply always on top
       if (typeof settings.alwaysOnTop === 'boolean') {
-        await window.floatingCam.toggleAlwaysOnTop();
+        if (window.floatingCam.setAlwaysOnTop) {
+          await window.floatingCam.setAlwaysOnTop(settings.alwaysOnTop);
+        }
       }
     }
     

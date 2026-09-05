@@ -66,54 +66,71 @@ body.no-animations * {
   height: 100vh;
   position: relative;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 4px;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
-/* Toolbar */
+/* Toolbar - Floating auto-hiding pill (hidden while recording, reveals on hover) */
 .toolbar {
-  flex: 0 0 auto;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
   height: 34px;
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 10px;
   gap: 8px;
-  background: var(--primary-bg);
+  background: rgba(18, 18, 22, 0.85);
   backdrop-filter: var(--blur-md) saturate(160%);
-  -webkit-app-region: drag;
-  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
   margin: 0;
-  z-index: 20;
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  z-index: 40;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  -webkit-app-region: no-drag;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.toolbar:hover {
-  background: rgba(30, 30, 32, 0.7);
+#app:hover .toolbar,
+.toolbar:hover,
+#app.controls-open .toolbar,
+body.toolbar-pinned .toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+body.toolbar-hidden .toolbar {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-primary);
   padding: 2px 4px;
-  flex: 1;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .toggle-btn {
   background: var(--accent-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  padding: 6px 8px;
+  border-radius: 9999px;
+  padding: 4px 8px;
   cursor: pointer;
   font-size: 12px;
   -webkit-app-region: no-drag;
   transition: all var(--transition-fast);
-  min-width: 32px;
+  min-width: 28px;
   height: 26px;
   display: flex;
   align-items: center;
@@ -130,13 +147,27 @@ body.no-animations * {
   transform: translateY(0);
 }
 
-/* Content area */
+.toggle-btn.active {
+  background: rgba(37, 99, 235, 0.85);
+  color: #ffffff;
+  border-color: rgba(96, 165, 250, 0.6);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+}
+
+/* Content area - Full window, draggable video container */
 #contentArea {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 100px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border-radius: var(--border-radius-lg);
+  -webkit-app-region: drag;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
 }
 
 /* Video element */
@@ -147,17 +178,20 @@ video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: var(--border-radius-lg);
+  border-radius: inherit;
   transform: scaleX(-1);
   transition: border-radius var(--transition-normal), 
               opacity var(--transition-normal),
               transform var(--transition-normal);
   background: #000;
+  -webkit-app-region: drag;
 }
 
-/* Circle mode */
+/* Circle mode (Loom style) */
+body.circle #app,
+body.circle #contentArea,
 body.circle video {
-  border-radius: 50%;
+  border-radius: 50% !important;
 }
 
 /* Loading overlay */
@@ -210,23 +244,28 @@ body.circle video {
   text-align: center;
   color: var(--text-primary);
   background: var(--secondary-bg);
-  padding: 24px;
+  padding: 16px 18px;
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border-color);
   backdrop-filter: var(--blur-lg);
   box-shadow: var(--shadow-md);
-  max-width: 280px;
+  width: 85%;
+  max-width: 260px;
+  box-sizing: border-box;
+  z-index: 30;
+  -webkit-app-region: no-drag;
 }
 
 .error-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-  opacity: 0.6;
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.8;
 }
 
 .error-text {
-  margin-bottom: 16px;
-  font-size: 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .retry-btn {
@@ -238,23 +277,41 @@ body.circle video {
   cursor: pointer;
   font-size: 12px;
   transition: all var(--transition-fast);
+  -webkit-app-region: no-drag;
+  pointer-events: auto;
 }
 
 .retry-btn:hover {
   background: var(--accent-bg-hover);
 }
 
+.retry-btn:active {
+  transform: scale(0.97);
+}
+
+.retry-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Resize handle */
 #resizeHandle {
   position: absolute;
-  right: 2px;
-  bottom: 2px;
+  right: 4px;
+  bottom: 4px;
   width: 16px;
   height: 16px;
   cursor: nwse-resize;
-  z-index: 30;
+  z-index: 35;
   transition: opacity var(--transition-fast);
-  opacity: 0.6;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-app-region: no-drag;
+}
+
+#app:hover #resizeHandle {
+  opacity: 0.65;
+  pointer-events: auto;
 }
 
 #resizeHandle:hover {

@@ -51,8 +51,10 @@ class CameraManager {
 
   async refreshDevices() {
     try {
-      this.devices = await navigator.mediaDevices.enumerateDevices();
-      this.devices = this.devices.filter(device => device.kind === 'videoinput');
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      console.log('All enumerated devices:', JSON.stringify(allDevices));
+      this.devices = allDevices.filter(device => device.kind === 'videoinput');
+      console.log('Video devices count:', this.devices.length, JSON.stringify(this.devices));
       
       // Dispatch event for UI to update device list
       window.dispatchEvent(new CustomEvent('camera-devices-updated', { 
@@ -67,11 +69,16 @@ class CameraManager {
   async startCamera(deviceId = null) {
     this.isLoading = true;
     this.showLoading(true);
-    
+    this.hideError();
+
     try {
       // Stop existing stream
       if (this.stream) {
         this.stopCamera();
+      }
+
+      if (!this.videoElement || !this.videoElement.isConnected) {
+        this.videoElement = document.getElementById('video');
       }
 
       const constraints = {
@@ -84,8 +91,19 @@ class CameraManager {
         audio: false
       };
 
-      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (firstError) {
+        if (firstError.name === 'NotReadableError' || firstError.name === 'NotAllowedError') {
+          throw firstError;
+        }
+        // Try fallback with basic constraints
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: deviceId ? { deviceId: { exact: deviceId } } : true,
+          audio: false
+        });
+      }
+
       if (this.videoElement) {
         this.videoElement.srcObject = this.stream;
         this.currentDeviceId = deviceId;
@@ -93,7 +111,8 @@ class CameraManager {
       }
 
       this.retryCount = 0;
-      
+      this.hideError();
+
       // Dispatch success event
       window.dispatchEvent(new CustomEvent('camera-started', { 
         detail: { deviceId: this.currentDeviceId } 
@@ -101,15 +120,26 @@ class CameraManager {
 
     } catch (error) {
       console.error('Failed to start camera:', error);
-      
+
       if (this.retryCount < this.maxRetries) {
         this.retryCount++;
         console.log(`Retrying camera start (${this.retryCount}/${this.maxRetries})...`);
         setTimeout(() => this.startCamera(deviceId), 1000 * this.retryCount);
       } else {
-        this.showError('Camera permission denied or unavailable');
+        let msg = 'Camera unavailable or permission denied';
+        if (error.name === 'NotReadableError' || (error.message && error.message.includes('Could not start video source'))) {
+          msg = 'Camera is busy (in use by another app like OBS Studio, Zoom, or Discord)';
+        } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          msg = 'Camera permission denied';
+        } else if (error.name === 'NotFoundError' || (this.devices && this.devices.length === 0)) {
+          msg = 'Camera is locked by another app (e.g. OBS Studio) or disconnected';
+        } else if (error.name === 'OverconstrainedError') {
+          msg = 'Camera resolution not supported';
+        }
+
+        this.showError(msg);
         window.dispatchEvent(new CustomEvent('camera-error', { 
-          detail: { error: error.message } 
+          detail: { error: msg } 
         }));
       }
     } finally {
@@ -187,15 +217,33 @@ class CameraManager {
   }
 
   showError(message) {
-    if (this.videoElement && this.videoElement.parentElement) {
-      this.videoElement.parentElement.innerHTML = `
-        <div class="error-message">
-          <div class="error-icon">📹</div>
-          <div class="error-text">${message}</div>
-          <button class="retry-btn" onclick="window.cameraManager.initialize()">Retry</button>
-        </div>
+    this.hideError();
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.innerHTML = `
+        <div class="error-icon">📹</div>
+        <div class="error-text">${message}</div>
+        <button class="retry-btn">Retry</button>
       `;
+      const retryBtn = errorDiv.querySelector('.retry-btn');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          retryBtn.textContent = 'Connecting...';
+          retryBtn.disabled = true;
+          this.retryCount = 0;
+          await this.initialize();
+        });
+      }
+      contentArea.appendChild(errorDiv);
     }
+  }
+
+  hideError() {
+    const errorElements = document.querySelectorAll('.error-message');
+    errorElements.forEach(el => el.remove());
   }
 
   // Event handlers

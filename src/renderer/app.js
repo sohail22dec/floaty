@@ -34,6 +34,12 @@ class FloatingCamApp {
       // Initialize UI
       this.uiController.initialize();
       
+      // Sync always-on-top state with UI
+      if (window.floatingCam?.isAlwaysOnTop) {
+        const isTop = await window.floatingCam.isAlwaysOnTop();
+        this.uiController.updateAlwaysOnTopUI(isTop);
+      }
+      
       // Start camera if auto-start is enabled
       if (this.settingsManager.get('camera.autoStart')) {
         await this.cameraManager.initialize();
@@ -172,6 +178,11 @@ class FloatingCamApp {
       case 'show-shortcuts':
         this.showShortcuts();
         break;
+        
+      case 'always-on-top-changed':
+        this.uiController.updateAlwaysOnTopUI(message.value);
+        this.settingsManager.set('window.alwaysOnTop', message.value);
+        break;
     }
   }
 
@@ -191,9 +202,11 @@ class FloatingCamApp {
     try {
       const size = await window.floatingCam?.getWindowSize();
       if (size) {
+        const w = Math.min(Math.max(size.width, 160), 500);
+        const h = Math.min(Math.max(size.height, 160), 500);
         this.settingsManager.update({
-          'window.width': size.width,
-          'window.height': size.height
+          'window.width': w,
+          'window.height': h
         });
       }
     } catch (error) {
@@ -206,7 +219,9 @@ class FloatingCamApp {
     const height = this.settingsManager.get('window.height');
     
     if (width && height && window.floatingCam) {
-      await window.floatingCam.setWindowSize(width, height);
+      const w = Math.min(Math.max(width, 160), 500);
+      const h = Math.min(Math.max(height, 160), 500);
+      await window.floatingCam.setWindowSize(w, h);
     }
   }
 
@@ -456,8 +471,8 @@ class FloatingCamApp {
               <span>Hide/Show window</span>
             </div>
             <div class="shortcut-item">
-              <kbd>Cmd+Alt+T</kbd>
-              <span>Toggle always on top</span>
+              <kbd>Cmd+Alt+P</kbd>
+              <span>Toggle always on top (Sticky)</span>
             </div>
             <div class="shortcut-item">
               <kbd>Cmd+Alt+R</kbd>

@@ -12,7 +12,13 @@
       <!-- Toolbar -->
       <div class="toolbar" id="drag-region" role="toolbar" aria-label="Floating Cam Controls">
         <span class="title">Floating Cam</span>
-        <button id="toggleBtn" title="Toggle Controls" aria-label="Toggle Controls" class="toggle-btn">
+        <button id="toolbarCircleBtn" title="Toggle Circle Bubble (Loom style) [C]" aria-label="Toggle Circle Bubble" class="toggle-btn">
+          ⭕
+        </button>
+        <button id="toolbarPinBtn" title="Always on Top (Sticky) [Ctrl+Alt+P]" aria-label="Always on Top" class="toggle-btn active">
+          📌
+        </button>
+        <button id="toggleBtn" title="Controls / Settings [Space]" aria-label="Toggle Controls" class="toggle-btn">
           ⚙️
         </button>
       </div>
@@ -35,6 +41,11 @@
           </div>
           
           <div class="controls-grid">
+            <button id="pinBtn" title="Toggle Always on Top" aria-label="Toggle Always on Top" class="control-btn active">
+              <span class="icon">📌</span>
+              <span>Sticky</span>
+            </button>
+
             <button id="flipBtn" title="Flip Horizontal" aria-label="Flip Horizontal" class="control-btn">
               <span class="icon">🔄</span>
               <span>Flip</span>
@@ -53,6 +64,11 @@
             <button id="settingsBtn" title="Resize / Settings" aria-label="Resize / Settings" class="control-btn">
               <span class="icon">📐</span>
               <span>Size</span>
+            </button>
+
+            <button id="hideBarBtn" title="Hide/Show Top Bar [H]" aria-label="Hide Top Bar" class="control-btn">
+              <span class="icon">🙈</span>
+              <span>Hide Bar</span>
             </button>
           </div>
 

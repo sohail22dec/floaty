@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, session } = require('electron');
 const WindowManager = require('./window-manager');
 const IPCHandlers = require('./ipc-handlers');
 const ShortcutManager = require('./shortcut-manager');
@@ -57,7 +57,28 @@ class AppManager {
 
   async onReady() {
     this.isReady = true;
-    
+
+    // Grant media permissions (camera, microphone)
+    if (session.defaultSession) {
+      session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+        if (['media', 'videoCapture', 'camera', 'microphone'].includes(permission)) {
+          return callback(true);
+        }
+        callback(false);
+      });
+
+      session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+        if (['media', 'videoCapture', 'camera', 'microphone'].includes(permission)) {
+          return true;
+        }
+        return false;
+      });
+
+      if (session.defaultSession.setDevicePermissionHandler) {
+        session.defaultSession.setDevicePermissionHandler(() => true);
+      }
+    }
+
     // Create the main window
     this.windowManager.createWindow();
     
