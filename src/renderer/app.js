@@ -285,7 +285,9 @@ class FloatingCamApp {
           <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
         </div>
         <div class="modal-body">
-          <div class="app-icon">📹</div>
+          <div class="app-icon">
+            <img src="../../assets/icon.png" alt="Floating Cam Icon" class="about-app-logo" />
+          </div>
           <h3>Floating Cam</h3>
           <p>Version ${window.floatingCam?.getVersion?.() || '1.0.0'}</p>
           <p>A cross-platform floating camera window that stays always on top.</p>

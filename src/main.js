@@ -8,6 +8,35 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('enable-transparent-visuals');
   app.commandLine.appendSwitch('disable-gpu');
   app.disableHardwareAcceleration();
+
+  // In development, ensure desktop launcher and icon are registered so the Linux dock displays the icon
+  if (!app.isPackaged) {
+    try {
+      const os = require('os');
+      const path = require('path');
+      const fs = require('fs');
+      const home = os.homedir();
+      const appDir = path.resolve(__dirname, '..');
+      const desktopFile = path.join(home, '.local/share/applications/floaty.desktop');
+      const iconFile = path.join(home, '.local/share/icons/hicolor/512x512/apps/floaty.png');
+      const srcIcon = path.join(appDir, 'assets/icon.png');
+
+      if (fs.existsSync(srcIcon)) {
+        if (!fs.existsSync(iconFile)) {
+          fs.mkdirSync(path.dirname(iconFile), { recursive: true });
+          fs.copyFileSync(srcIcon, iconFile);
+        }
+      }
+
+      if (!fs.existsSync(desktopFile)) {
+        fs.mkdirSync(path.dirname(desktopFile), { recursive: true });
+        const entry = `[Desktop Entry]\nName=Floaty\nComment=Floating Camera\nExec=${process.execPath} ${appDir} --no-sandbox --enable-transparent-visuals --disable-gpu\nIcon=floaty\nTerminal=false\nType=Application\nStartupWMClass=floaty\nCategories=AudioVideo;\n`;
+        fs.writeFileSync(desktopFile, entry, 'utf8');
+      }
+    } catch {
+      // Ignore shortcut setup errors
+    }
+  }
 }
 
 const AppManager = require('./main/app-manager');

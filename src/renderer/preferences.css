@@ -73,6 +73,14 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);
+  overflow: hidden;
+}
+
+.brand-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
 .pref-header h1 {

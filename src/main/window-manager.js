@@ -98,7 +98,10 @@ class WindowManager {
     this.isCircle = Boolean(savedState?.isCircle);
     this.radius = savedState?.radius !== undefined ? savedState.radius : 16;
 
+    const iconPath = path.join(__dirname, '../../assets/icon.png');
+
     this.window = new BrowserWindow({
+      icon: iconPath,
       width: initialWidth,
       height: initialHeight,
       minWidth: 160,
@@ -249,7 +252,10 @@ class WindowManager {
       return this.preferencesWindow;
     }
 
+    const iconPath = path.join(__dirname, '../../assets/icon.png');
+
     this.preferencesWindow = new BrowserWindow({
+      icon: iconPath,
       width: 500,
       height: 560,
       minWidth: 440,
