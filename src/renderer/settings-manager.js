@@ -13,6 +13,8 @@ class SettingsManager {
       window: {
         width: 320,
         height: 240,
+        rectWidth: 320,
+        rectHeight: 240,
         alwaysOnTop: true,
         opacity: 1.0,
         borderRadius: 16
@@ -71,6 +73,12 @@ class SettingsManager {
           }
           if (!this.settings.window.height || this.settings.window.height > 500) {
             this.settings.window.height = 240;
+          }
+          if (!this.settings.window.rectWidth || this.settings.window.rectWidth > 500) {
+            this.settings.window.rectWidth = this.settings.window.width;
+          }
+          if (!this.settings.window.rectHeight || this.settings.window.rectHeight > 500) {
+            this.settings.window.rectHeight = this.settings.window.height;
           }
         }
       }
@@ -283,7 +291,11 @@ class SettingsManager {
     if (typeof settings.isCircle === 'boolean' && window.uiController) {
       const isCurrentlyCircle = document.body.classList.contains('circle');
       if (isCurrentlyCircle !== settings.isCircle) {
-        window.uiController.toggleCircle();
+        if (window.uiController.setCircle) {
+          window.uiController.setCircle(settings.isCircle, false);
+        } else {
+          window.uiController.toggleCircle();
+        }
       }
     }
   }

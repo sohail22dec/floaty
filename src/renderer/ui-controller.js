@@ -268,8 +268,8 @@ class UIController {
     }
   }
 
-  async toggleCircle() {
-    this.state.isCircle = !this.state.isCircle;
+  async setCircle(isCircle, save = true) {
+    this.state.isCircle = Boolean(isCircle);
     document.body.classList.toggle('circle', this.state.isCircle);
 
     if (this.state.isCircle) {
@@ -277,7 +277,15 @@ class UIController {
       try {
         const currentSize = await window.floatingCam?.getWindowSize();
         if (currentSize) {
-          this.savedRectSize = currentSize;
+          if (currentSize.width !== currentSize.height) {
+            this.savedRectSize = { width: currentSize.width, height: currentSize.height };
+            if (save && window.settingsManager) {
+              window.settingsManager.update({
+                'window.rectWidth': currentSize.width,
+                'window.rectHeight': currentSize.height
+              });
+            }
+          }
           // Set to a square 1:1 aspect ratio so it's a true, perfect circle (Loom style)
           const diameter = Math.min(currentSize.width, currentSize.height);
           await window.floatingCam?.setWindowSize(diameter, diameter);
@@ -287,13 +295,20 @@ class UIController {
       }
     } else {
       // Restore previous rectangular size and custom radius
-      if (this.savedRectSize) {
-        await window.floatingCam?.setWindowSize(this.savedRectSize.width, this.savedRectSize.height);
-      }
+      const rectW = this.savedRectSize?.width || window.settingsManager?.get('window.rectWidth') || 320;
+      const rectH = this.savedRectSize?.height || window.settingsManager?.get('window.rectHeight') || 240;
+      await window.floatingCam?.setWindowSize(rectW, rectH);
       this.updateBorderRadius(this.state.borderRadius);
     }
 
     this.updateCircleButton();
+    if (save && window.settingsManager) {
+      window.settingsManager.set('camera.isCircle', this.state.isCircle);
+    }
+  }
+
+  async toggleCircle() {
+    await this.setCircle(!this.state.isCircle, true);
     this.showStatus(this.state.isCircle ? 'Circle mode enabled' : 'Rectangle mode enabled', 'info');
   }
 
@@ -356,12 +371,28 @@ class UIController {
   }
 
   async applySize() {
-    const width = parseInt(this.elements.widthInput?.value, 10);
-    const height = parseInt(this.elements.heightInput?.value, 10);
+    let width = parseInt(this.elements.widthInput?.value, 10);
+    let height = parseInt(this.elements.heightInput?.value, 10);
+
+    if (this.state.isCircle) {
+      width = Math.min(width, height);
+      height = width;
+    }
 
     if (width && height) {
       try {
+        width = Math.min(Math.max(width, 160), 500);
+        height = Math.min(Math.max(height, 160), 500);
         await window.floatingCam?.setWindowSize(width, height);
+
+        if (window.settingsManager) {
+          const updates = { 'window.width': width, 'window.height': height };
+          if (!this.state.isCircle) {
+            updates['window.rectWidth'] = width;
+            updates['window.rectHeight'] = height;
+          }
+          window.settingsManager.update(updates);
+        }
       } catch (error) {
         console.error('Failed to set window size:', error);
         this.showToast('Failed to resize window');
@@ -371,19 +402,30 @@ class UIController {
 
   async applyPreset(ratio) {
     try {
+      if (this.state.isCircle) {
+        await this.setCircle(false, true);
+      }
       const size = await window.floatingCam?.getWindowSize();
       if (!size) return;
 
       const [rw, rh] = ratio.split(':').map(Number);
       if (!rw || !rh) return;
 
-      const newWidth = size.width;
-      const newHeight = Math.round(newWidth * (rh / rw));
+      const newWidth = Math.min(Math.max(size.width, 160), 500);
+      const newHeight = Math.min(Math.max(Math.round(newWidth * (rh / rw)), 160), 500);
 
       await window.floatingCam?.setWindowSize(newWidth, newHeight);
 
-      if (this.elements.heightInput) {
-        this.elements.heightInput.value = newHeight;
+      if (this.elements.widthInput) this.elements.widthInput.value = newWidth;
+      if (this.elements.heightInput) this.elements.heightInput.value = newHeight;
+
+      if (window.settingsManager) {
+        window.settingsManager.update({
+          'window.width': newWidth,
+          'window.height': newHeight,
+          'window.rectWidth': newWidth,
+          'window.rectHeight': newHeight
+        });
       }
     } catch (error) {
       console.error('Failed to apply preset:', error);
@@ -429,8 +471,18 @@ class UIController {
 
       const dx = e.screenX - startX;
       const dy = e.screenY - startY;
-      const newW = Math.max(160, startW + dx);
-      const newH = Math.max(160, startH + dy);
+      let newW = Math.max(160, startW + dx);
+      let newH = Math.max(160, startH + dy);
+
+      if (this.state.isCircle) {
+        const delta = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+        const diameter = Math.min(Math.max(160, startW + delta), 500);
+        newW = diameter;
+        newH = diameter;
+      } else {
+        newW = Math.min(newW, 500);
+        newH = Math.min(newH, 500);
+      }
 
       try {
         await window.floatingCam?.setWindowSize(newW, newH);
@@ -524,6 +576,7 @@ class UIController {
     // Set initial values
     this.updateBorderRadius(this.state.borderRadius);
     this.updateOpacityButton();
+    this.updateCircleButton();
     
     // Initialize camera manager reference
     if (window.cameraManager) {

@@ -73,9 +73,14 @@ class FloatingCamApp {
       this.settingsManager.set('camera.isFlipped', event.detail.isFlipped);
     });
 
-    // Window events
+    // Window events (debounced, and only after initial load finishes)
+    let resizeTimer = null;
     window.addEventListener('resize', () => {
-      this.saveWindowSize();
+      if (!this.isInitialized) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        this.saveWindowSize();
+      }, 250);
     });
 
     // Handle window focus/blur
@@ -199,15 +204,22 @@ class FloatingCamApp {
   }
 
   async saveWindowSize() {
+    if (!this.isInitialized) return;
     try {
       const size = await window.floatingCam?.getWindowSize();
       if (size) {
         const w = Math.min(Math.max(size.width, 160), 500);
         const h = Math.min(Math.max(size.height, 160), 500);
-        this.settingsManager.update({
+        const updates = {
           'window.width': w,
           'window.height': h
-        });
+        };
+        // When not in circle mode, also update the rectangle restore dimensions
+        if (!this.uiController?.state?.isCircle) {
+          updates['window.rectWidth'] = w;
+          updates['window.rectHeight'] = h;
+        }
+        this.settingsManager.update(updates);
       }
     } catch (error) {
       console.error('Failed to save window size:', error);
