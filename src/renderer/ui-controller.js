@@ -71,9 +71,9 @@ class UIController {
   }
 
   initializeEventListeners() {
-    // Toggle controls overlay
+    // Toggle preferences window
     this.elements.toggleBtn?.addEventListener('click', () => {
-      this.toggleControls();
+      window.floatingCam?.openPreferences?.();
     });
 
     // Close overlay
@@ -186,14 +186,60 @@ class UIController {
 
     window.addEventListener('camera-flipped', e => {
       this.updateFlipButton(e.detail.isFlipped);
+      window.floatingCam?.syncSetting?.('flip', e.detail.isFlipped);
     });
   }
 
   setupIPCEventListeners() {
-    // Listen for IPC events from main process
+    // Listen for real-time synchronization from the Preferences window
+    window.floatingCam?.onSettingSynced?.(data => {
+      if (!data) return;
+      const { key, value } = data;
+
+      if (key === 'shape') {
+        if (this.state.isCircle !== value.isCircle) {
+          this.setCircle(value.isCircle, false);
+        }
+        if (!value.isCircle && value.radius !== undefined) {
+          this.updateBorderRadius(value.radius);
+        }
+      } else if (key === 'radius') {
+        this.updateBorderRadius(value);
+      } else if (key === 'flip') {
+        if (window.cameraManager && window.cameraManager.isFlipped !== value) {
+          window.cameraManager.toggleFlip();
+        }
+      } else if (key === 'opacity') {
+        this.setOpacity(value);
+      } else if (key === 'alwaysOnTop') {
+        this.updateAlwaysOnTopUI(value);
+      } else if (key === 'camera-device') {
+        window.cameraManager?.switchCamera(value);
+      } else if (key === 'snapshot') {
+        this.takeSnapshot();
+      } else if (key === 'autoHideBar') {
+        this.elements.toolbar?.classList.toggle('always-visible', !value);
+      } else if (key === 'size') {
+        if (value && value.width && value.height) {
+          const w = Math.max(160, Math.min(600, parseInt(value.width, 10)));
+          const h = Math.max(160, Math.min(600, parseInt(value.height, 10)));
+          this.savedRectSize = { width: w, height: h };
+          if (window.settingsManager) {
+            window.settingsManager.update({
+              'window.width': w,
+              'window.height': h,
+              'window.rectWidth': w,
+              'window.rectHeight': h
+            });
+          }
+        }
+      }
+    });
+
+    // Listen for IPC events from main process (e.g. global shortcuts)
     window.addEventListener('message', event => {
       if (event.data.type === 'show-controls') {
-        this.showControls();
+        window.floatingCam?.openPreferences?.();
       } else if (event.data.type === 'reload-camera') {
         window.cameraManager?.initialize();
       } else if (event.data.type === 'toggle-flip') {
@@ -214,13 +260,8 @@ class UIController {
           this.hideControls();
           break;
         case ' ':
-        case 'Enter':
-          if (this.state.controlsVisible) {
-            e.preventDefault();
-            this.hideControls();
-          } else {
-            this.showControls();
-          }
+          e.preventDefault();
+          window.floatingCam?.openPreferences?.();
           break;
         case 'f':
         case 'F':
@@ -278,18 +319,16 @@ class UIController {
     document.body.classList.toggle('circle', this.state.isCircle);
 
     if (this.state.isCircle) {
-      // Save rectangle dimensions before converting to circle
+      // Save current dimensions before converting to circle
       try {
         const currentSize = await window.floatingCam?.getWindowSize();
         if (currentSize) {
-          if (currentSize.width !== currentSize.height) {
-            this.savedRectSize = { width: currentSize.width, height: currentSize.height };
-            if (save && window.settingsManager) {
-              window.settingsManager.update({
-                'window.rectWidth': currentSize.width,
-                'window.rectHeight': currentSize.height
-              });
-            }
+          this.savedRectSize = { width: currentSize.width, height: currentSize.height };
+          if (save && window.settingsManager) {
+            window.settingsManager.update({
+              'window.rectWidth': currentSize.width,
+              'window.rectHeight': currentSize.height
+            });
           }
           // Set to a square 1:1 aspect ratio so it's a true, perfect circle (Loom style)
           const diameter = Math.min(currentSize.width, currentSize.height);
@@ -300,16 +339,27 @@ class UIController {
       }
     } else {
       // Restore previous rectangular size and custom radius
-      const rectW =
-        this.savedRectSize?.width || window.settingsManager?.get('window.rectWidth') || 320;
-      const rectH =
+      let rectW =
+        this.savedRectSize?.width || window.settingsManager?.get('window.rectWidth') || 240;
+      let rectH =
         this.savedRectSize?.height || window.settingsManager?.get('window.rectHeight') || 240;
+
+      // Guard against legacy corrupted 500 values
+      if (rectW >= 480 && rectH >= 480) {
+        rectW = 240;
+        rectH = 240;
+      }
+
       await window.floatingCam?.setWindowSize(rectW, rectH);
       this.updateBorderRadius(this.state.borderRadius);
     }
 
     this.updateCircleButton();
     window.floatingCam?.updateShape?.(this.state.isCircle, this.state.borderRadius);
+    window.floatingCam?.syncSetting?.('shape', {
+      isCircle: this.state.isCircle,
+      radius: this.state.borderRadius
+    });
     if (save && window.settingsManager) {
       window.settingsManager.set('camera.isCircle', this.state.isCircle);
     }
@@ -318,6 +368,14 @@ class UIController {
   async toggleCircle() {
     await this.setCircle(!this.state.isCircle, true);
     this.showStatus(this.state.isCircle ? 'Circle mode enabled' : 'Rectangle mode enabled', 'info');
+  }
+
+  setOpacity(value) {
+    this.state.opacity = Math.max(0.1, Math.min(1, parseFloat(value) || 1));
+    if (this.elements.video) {
+      this.elements.video.style.opacity = this.state.opacity;
+    }
+    this.updateOpacityButton();
   }
 
   cycleOpacity() {
@@ -329,9 +387,10 @@ class UIController {
     }
 
     this.updateOpacityButton();
+    window.floatingCam?.syncSetting?.('opacity', this.state.opacity);
   }
 
-  updateBorderRadius(value) {
+  updateBorderRadius(value, broadcast = true) {
     this.state.borderRadius = value;
 
     if (!this.state.isCircle) {
@@ -342,6 +401,9 @@ class UIController {
         this.elements.contentArea.style.borderRadius = `${value}%`;
       }
       window.floatingCam?.updateShape?.(false, value);
+      if (broadcast) {
+        window.floatingCam?.syncSetting?.('radius', value);
+      }
     }
 
     if (this.elements.radiusValue) {
@@ -637,11 +699,7 @@ class UIController {
 
   // Preferences functionality
   showPreferences() {
-    if (window.app && typeof window.app.showPreferences === 'function') {
-      window.app.showPreferences();
-    } else {
-      this.showToast('Preferences not available', 'error');
-    }
+    window.floatingCam?.openPreferences?.();
   }
 
   // Device selection setup
@@ -697,6 +755,7 @@ class UIController {
     if (window.floatingCam?.toggleAlwaysOnTop) {
       const isTop = await window.floatingCam.toggleAlwaysOnTop();
       this.updateAlwaysOnTopUI(isTop);
+      window.floatingCam?.syncSetting?.('alwaysOnTop', isTop);
       if (window.settingsManager) {
         window.settingsManager.set('window.alwaysOnTop', isTop);
       }

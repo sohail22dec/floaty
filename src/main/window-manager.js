@@ -1,5 +1,6 @@
 const { BrowserWindow, app } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 function getWindowShapeRects(width, height, isCircle, radiusVal = 16) {
   let radius = 16;
@@ -38,15 +39,68 @@ function getWindowShapeRects(width, height, isCircle, radiusVal = 16) {
 class WindowManager {
   constructor() {
     this.window = null;
+    this.preferencesWindow = null;
     this.isQuitting = false;
     this.isCircle = false;
     this.radius = 16;
   }
 
+  getWindowStatePath() {
+    try {
+      return path.join(app.getPath('userData'), 'window-state.json');
+    } catch {
+      return null;
+    }
+  }
+
+  loadWindowState() {
+    try {
+      const statePath = this.getWindowStatePath();
+      if (statePath && fs.existsSync(statePath)) {
+        const raw = fs.readFileSync(statePath, 'utf8');
+        const data = JSON.parse(raw);
+        if (data.width >= 160 && data.width <= 600 && data.height >= 160 && data.height <= 600) {
+          if (data.width >= 480 && data.height >= 480) {
+            data.width = 240;
+            data.height = 240;
+          }
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read window-state.json', e);
+    }
+    return null;
+  }
+
+  saveWindowState() {
+    try {
+      const statePath = this.getWindowStatePath();
+      if (statePath && this.window && !this.window.isDestroyed()) {
+        const [w, h] = this.window.getSize();
+        const data = {
+          width: w >= 480 && h >= 480 ? 240 : w,
+          height: w >= 480 && h >= 480 ? 240 : h,
+          isCircle: this.isCircle,
+          radius: this.radius
+        };
+        fs.writeFileSync(statePath, JSON.stringify(data, null, 2), 'utf8');
+      }
+    } catch (e) {
+      console.warn('Could not save window-state.json', e);
+    }
+  }
+
   createWindow() {
+    const savedState = this.loadWindowState();
+    const initialWidth = savedState?.width || 240;
+    const initialHeight = savedState?.height || 240;
+    this.isCircle = Boolean(savedState?.isCircle);
+    this.radius = savedState?.radius !== undefined ? savedState.radius : 16;
+
     this.window = new BrowserWindow({
-      width: 320,
-      height: 240,
+      width: initialWidth,
+      height: initialHeight,
       minWidth: 160,
       minHeight: 160,
       maxWidth: 600,
@@ -116,6 +170,7 @@ class WindowManager {
 
     this.window.on('resize', () => {
       this.applyWindowShape();
+      this.saveWindowState();
     });
 
     return this.window;
@@ -140,6 +195,7 @@ class WindowManager {
       this.radius = radius;
     }
     this.applyWindowShape();
+    this.saveWindowState();
   }
 
   getWindow() {
@@ -186,7 +242,43 @@ class WindowManager {
     this.isQuitting = isQuitting;
   }
 
+  openPreferencesWindow() {
+    if (this.preferencesWindow && !this.preferencesWindow.isDestroyed()) {
+      this.preferencesWindow.show();
+      this.preferencesWindow.focus();
+      return this.preferencesWindow;
+    }
+
+    this.preferencesWindow = new BrowserWindow({
+      width: 500,
+      height: 560,
+      minWidth: 440,
+      minHeight: 480,
+      title: 'Floaty Settings',
+      backgroundColor: '#0c0d12',
+      autoHideMenuBar: true,
+      webPreferences: {
+        preload: path.join(__dirname, '../preload.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true
+      }
+    });
+
+    this.preferencesWindow.loadFile(path.join(__dirname, '../renderer/preferences.html'));
+
+    this.preferencesWindow.on('closed', () => {
+      this.preferencesWindow = null;
+    });
+
+    return this.preferencesWindow;
+  }
+
   destroy() {
+    if (this.preferencesWindow && !this.preferencesWindow.isDestroyed()) {
+      this.preferencesWindow.destroy();
+      this.preferencesWindow = null;
+    }
     if (this.window) {
       this.window.destroy();
       this.window = null;

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+    />
+    <title>Floaty Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="preferences.css" />
+  </head>
+  <body data-theme="dark">
+    <div class="pref-container">
+      <!-- Header -->
+      <header class="pref-header">
+        <div class="header-brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+              <circle cx="12" cy="12" r="9"></circle>
+              <circle cx="12" cy="12" r="3" fill="#6366f1"></circle>
+            </svg>
+          </div>
+          <div>
+            <h1>Floaty Preferences</h1>
+            <p class="subtitle">Customize your floating camera & behavior</p>
+          </div>
+        </div>
+        <span class="version-badge">v1.0.0</span>
+      </header>
+
+      <!-- Navigation Tabs -->
+      <nav class="pref-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="camera" role="tab">
+          <svg
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+            <circle cx="12" cy="13" r="3"></circle>
+          </svg>
+          <span>Camera</span>
+        </button>
+        <button class="tab-btn" data-tab="appearance" role="tab">
+          <svg
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+          <span>Appearance</span>
+        </button>
+        <button class="tab-btn" data-tab="shortcuts" role="tab">
+          <svg
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+            <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h8M6 16h.001M18 16h.001"></path>
+          </svg>
+          <span>Shortcuts</span>
+        </button>
+      </nav>
+
+      <!-- Tab Contents -->
+      <main class="pref-content">
+        <!-- Tab 1: Camera & Video -->
+        <section id="tab-camera" class="tab-pane active">
+          <!-- Camera Source Selector -->
+          <div class="pref-card">
+            <div class="card-header">
+              <label for="cameraSelect">Camera Source</label>
+              <button id="refreshCamerasBtn" class="action-link" title="Refresh Devices">Refresh</button>
+            </div>
+            <div class="select-wrapper">
+              <select id="cameraSelect">
+                <option value="">Searching for cameras...</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Video Options -->
+          <div class="pref-card">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3>Mirror Camera (Flip)</h3>
+                <p>Flips your camera horizontally so it behaves like a natural mirror</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="flipSwitch" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Aspect Ratio Presets -->
+          <div class="pref-card">
+            <div class="card-header">
+              <h3>Window Aspect Ratio & Presets</h3>
+            </div>
+            <div class="preset-buttons">
+              <button class="preset-btn" data-preset="1:1">
+                <strong>1:1</strong>
+                <span>Square</span>
+              </button>
+              <button class="preset-btn" data-preset="4:3">
+                <strong>4:3</strong>
+                <span>Classic</span>
+              </button>
+              <button class="preset-btn" data-preset="16:9">
+                <strong>16:9</strong>
+                <span>Wide</span>
+              </button>
+              <button class="preset-btn" data-preset="9:16">
+                <strong>9:16</strong>
+                <span>Portrait</span>
+              </button>
+            </div>
+
+            <div class="custom-dims">
+              <div class="dim-input-group">
+                <label for="prefWidthInput">Width</label>
+                <input type="number" id="prefWidthInput" min="160" max="600" step="10" />
+                <span>px</span>
+              </div>
+              <span class="dim-x">×</span>
+              <div class="dim-input-group">
+                <label for="prefHeightInput">Height</label>
+                <input type="number" id="prefHeightInput" min="160" max="600" step="10" />
+                <span>px</span>
+              </div>
+              <button id="applyDimsBtn" class="btn-primary">Apply</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 2: Appearance & Shape -->
+        <section id="tab-appearance" class="tab-pane">
+          <!-- Shape Mode Toggle -->
+          <div class="pref-card">
+            <div class="card-header">
+              <h3>Camera Window Shape</h3>
+            </div>
+            <div class="shape-selector">
+              <button class="shape-card" id="shapeCircleBtn">
+                <div class="shape-preview circle"></div>
+                <strong>Circle Bubble</strong>
+                <span>Loom style</span>
+              </button>
+              <button class="shape-card active" id="shapeRectBtn">
+                <div class="shape-preview rounded"></div>
+                <strong>Rounded Rectangle</strong>
+                <span>Window style</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Corner Rounding Slider -->
+          <div class="pref-card" id="radiusCard">
+            <div class="slider-header">
+              <div>
+                <h3>Corner Rounding</h3>
+                <p>Adjust the curvature radius of the floating window</p>
+              </div>
+              <span id="radiusBadge" class="badge">16%</span>
+            </div>
+            <input type="range" id="prefRadiusSlider" min="0" max="50" value="16" />
+          </div>
+
+          <!-- Opacity Slider -->
+          <div class="pref-card">
+            <div class="slider-header">
+              <div>
+                <h3>Window Transparency</h3>
+                <p>Adjust window opacity so background windows remain visible</p>
+              </div>
+              <span id="opacityBadge" class="badge">100%</span>
+            </div>
+            <input type="range" id="prefOpacitySlider" min="40" max="100" value="100" step="5" />
+          </div>
+
+          <!-- Window Behaviors -->
+          <div class="pref-card">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3>Always on Top (Sticky)</h3>
+                <p>Keep the camera floating over all open applications</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="alwaysOnTopSwitch" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="setting-row divider-top">
+              <div class="setting-info">
+                <h3>Auto-Hide Top Controls Bar</h3>
+                <p>Keep the bubble minimal and reveal buttons only on mouse hover</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="autoHideBarSwitch" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 3: Shortcuts -->
+        <section id="tab-shortcuts" class="tab-pane">
+          <div class="pref-card">
+            <div class="card-header">
+              <h3>Keyboard Shortcuts</h3>
+              <p class="card-subtitle">Quickly control Floaty without leaving your workflow</p>
+            </div>
+
+            <div class="shortcuts-list">
+              <div class="shortcut-item">
+                <span>Toggle Circle / Rectangle</span>
+                <kbd>C</kbd>
+              </div>
+              <div class="shortcut-item">
+                <span>Mirror / Flip Camera</span>
+                <kbd>F</kbd>
+              </div>
+              <div class="shortcut-item">
+                <span>Toggle Always on Top</span>
+                <div class="kbd-group">
+                  <kbd>Ctrl</kbd>
+                  +
+                  <kbd>Alt</kbd>
+                  +
+                  <kbd>P</kbd>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <span>1:1 Square Preset</span>
+                <div class="kbd-group">
+                  <kbd>Ctrl</kbd>
+                  +
+                  <kbd>Alt</kbd>
+                  +
+                  <kbd>1</kbd>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <span>4:3 Standard Preset</span>
+                <div class="kbd-group">
+                  <kbd>Ctrl</kbd>
+                  +
+                  <kbd>Alt</kbd>
+                  +
+                  <kbd>2</kbd>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <span>16:9 Widescreen Preset</span>
+                <div class="kbd-group">
+                  <kbd>Ctrl</kbd>
+                  +
+                  <kbd>Alt</kbd>
+                  +
+                  <kbd>3</kbd>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <span>Toggle Window Visibility</span>
+                <div class="kbd-group">
+                  <kbd>Ctrl</kbd>
+                  +
+                  <kbd>Alt</kbd>
+                  +
+                  <kbd>H</kbd>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <span>Reload Camera Feed</span>
+                <div class="kbd-group">
+                  <kbd>Ctrl</kbd>
+                  +
+                  <kbd>Alt</kbd>
+                  +
+                  <kbd>R</kbd>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <span>Open Preferences</span>
+                <kbd>Space</kbd>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="pref-footer">
+        <div class="sync-status">
+          <span class="sync-dot"></span>
+          <span>Changes apply live to your floating camera</span>
+        </div>
+        <div class="footer-actions">
+          <button id="prefSnapshotBtn" class="btn-secondary">📸 Take Snapshot</button>
+        </div>
+      </footer>
+    </div>
+
+    <script src="preferences.js"></script>
+  </body>
+</html>

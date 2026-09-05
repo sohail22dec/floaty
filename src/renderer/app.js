@@ -207,8 +207,13 @@ class FloatingCamApp {
     try {
       const size = await window.floatingCam?.getWindowSize();
       if (size) {
-        const w = Math.min(Math.max(size.width, 160), 500);
-        const h = Math.min(Math.max(size.height, 160), 500);
+        let w = size.width;
+        let h = size.height;
+        if (w >= 480 && h >= 480) {
+          return; // Ignore oversized/legacy 500 values
+        }
+        w = Math.min(Math.max(w, 160), 500);
+        h = Math.min(Math.max(h, 160), 500);
         const updates = {
           'window.width': w,
           'window.height': h

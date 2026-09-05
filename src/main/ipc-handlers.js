@@ -25,6 +25,7 @@ class IPCHandlers {
       if (w && h) {
         window.setSize(w, h, true);
         this.windowManager.applyWindowShape();
+        this.windowManager.saveWindowState();
         return true;
       }
       return false;
@@ -87,6 +88,23 @@ class IPCHandlers {
 
     ipcMain.handle('show-window', () => {
       this.windowManager.showWindow();
+    });
+
+    ipcMain.handle('open-preferences', () => {
+      this.windowManager.openPreferencesWindow();
+      return true;
+    });
+
+    ipcMain.handle('sync-setting', (event, { key, value }) => {
+      const mainWindow = this.windowManager.getWindow();
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('setting-synced', { key, value });
+      }
+      const prefWin = this.windowManager.preferencesWindow;
+      if (prefWin && !prefWin.isDestroyed() && event.sender !== prefWin.webContents) {
+        prefWin.webContents.send('setting-synced', { key, value });
+      }
+      return true;
     });
 
     // App control handlers

@@ -1,5 +1,7 @@
 const { app } = require('electron');
 
+app.name = 'floaty';
+
 // On Linux (especially Wayland/X11 with Mutter), GPU acceleration causes transparent
 // window regions/rounded corners to render as solid black.
 if (process.platform === 'linux') {

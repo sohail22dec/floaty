@@ -66,18 +66,28 @@ class SettingsManager {
       if (stored) {
         const parsedSettings = JSON.parse(stored);
         this.settings = this.mergeSettings(this.getDefaultSettings(), parsedSettings);
-        // Sanitize window dimensions to prevent oversized window on Linux
+        // Sanitize window dimensions to prevent oversized window
         if (this.settings.window) {
-          if (!this.settings.window.width || this.settings.window.width > 500) {
-            this.settings.window.width = 320;
-          }
-          if (!this.settings.window.height || this.settings.window.height > 500) {
+          // If legacy 500x500 got saved, reset to sane 240x240
+          if (this.settings.window.width >= 480 && this.settings.window.height >= 480) {
+            this.settings.window.width = 240;
             this.settings.window.height = 240;
           }
-          if (!this.settings.window.rectWidth || this.settings.window.rectWidth > 500) {
+          if (this.settings.window.rectWidth >= 480 && this.settings.window.rectHeight >= 480) {
+            this.settings.window.rectWidth = 320;
+            this.settings.window.rectHeight = 240;
+          }
+
+          if (!this.settings.window.width || this.settings.window.width > 480) {
+            this.settings.window.width = 240;
+          }
+          if (!this.settings.window.height || this.settings.window.height > 480) {
+            this.settings.window.height = 240;
+          }
+          if (!this.settings.window.rectWidth || this.settings.window.rectWidth > 480) {
             this.settings.window.rectWidth = this.settings.window.width;
           }
-          if (!this.settings.window.rectHeight || this.settings.window.rectHeight > 500) {
+          if (!this.settings.window.rectHeight || this.settings.window.rectHeight > 480) {
             this.settings.window.rectHeight = this.settings.window.height;
           }
         }
@@ -119,6 +129,7 @@ class SettingsManager {
 
   // Get setting value
   get(path) {
+    if (!path) return this.settings;
     const keys = path.split('.');
     let current = this.settings;
 
@@ -135,6 +146,7 @@ class SettingsManager {
 
   // Set setting value
   set(path, value) {
+    if (!path) return false;
     const keys = path.split('.');
     const lastKey = keys.pop();
     let current = this.settings;

@@ -26,7 +26,19 @@ contextBridge.exposeInMainWorld('floatingCam', {
   saveSettings: settings => ipcRenderer.invoke('save-settings', settings),
 
   // Camera
-  getCameraDevices: () => ipcRenderer.invoke('get-camera-devices')
+  getCameraDevices: () => ipcRenderer.invoke('get-camera-devices'),
+
+  // Window shape (anti-black-corner masking)
+  updateShape: (isCircle, radius) => ipcRenderer.invoke('update-shape', { isCircle, radius }),
+
+  // Dedicated Preferences Window & Realtime Setting Sync
+  openPreferences: () => ipcRenderer.invoke('open-preferences'),
+  syncSetting: (key, value) => ipcRenderer.invoke('sync-setting', { key, value }),
+  onSettingSynced: callback => {
+    const handler = (event, data) => callback(data);
+    ipcRenderer.on('setting-synced', handler);
+    return () => ipcRenderer.removeListener('setting-synced', handler);
+  }
 });
 
 // Expose a limited API for receiving messages from main process
