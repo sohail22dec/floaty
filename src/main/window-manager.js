@@ -1,10 +1,46 @@
 const { BrowserWindow, app } = require('electron');
 const path = require('path');
 
+function getWindowShapeRects(width, height, isCircle, radiusVal = 16) {
+  let radius = 16;
+  if (isCircle) {
+    radius = Math.floor(Math.min(width, height) / 2);
+  } else {
+    if (radiusVal > 0 && radiusVal <= 50) {
+      radius = Math.round((radiusVal / 100) * Math.min(width, height));
+    } else {
+      radius = Number(radiusVal) || 16;
+    }
+  }
+
+  radius = Math.min(radius, Math.floor(width / 2), Math.floor(height / 2));
+  if (radius <= 0) return [];
+
+  const rects = [];
+  for (let y = 0; y < height; y++) {
+    let dx = 0;
+    if (y < radius) {
+      const dy = radius - y;
+      dx = Math.round(radius - Math.sqrt(radius * radius - dy * dy));
+    } else if (y >= height - radius) {
+      const dy = y - (height - radius - 1);
+      dx = Math.round(radius - Math.sqrt(radius * radius - dy * dy));
+    }
+
+    const w = width - 2 * dx;
+    if (w > 0) {
+      rects.push({ x: dx, y: y, width: w, height: 1 });
+    }
+  }
+  return rects;
+}
+
 class WindowManager {
   constructor() {
     this.window = null;
     this.isQuitting = false;
+    this.isCircle = false;
+    this.radius = 16;
   }
 
   createWindow() {
@@ -18,6 +54,7 @@ class WindowManager {
       maximizable: false,
       fullscreenable: false,
       transparent: true,
+      backgroundColor: '#00000000',
       frame: false,
       alwaysOnTop: true,
       resizable: true,
@@ -50,6 +87,7 @@ class WindowManager {
 
     // Load the renderer
     this.window.loadFile(path.join(__dirname, '../renderer/index.html'));
+    this.window.setBackgroundColor('#00000000');
 
     // Window event handlers
     this.window.on('closed', () => {
@@ -71,13 +109,37 @@ class WindowManager {
       }
     });
 
-    this.window.on('focus', () => {
-      if (this.window) {
-        this.window.webContents.send('window-focus');
-      }
+    // Apply window shape mask to eliminate black corner artifacts
+    this.window.once('ready-to-show', () => {
+      this.applyWindowShape();
+    });
+
+    this.window.on('resize', () => {
+      this.applyWindowShape();
     });
 
     return this.window;
+  }
+
+  applyWindowShape() {
+    if (!this.window || typeof this.window.setShape !== 'function') return;
+    try {
+      const [width, height] = this.window.getSize();
+      const rects = getWindowShapeRects(width, height, this.isCircle, this.radius);
+      this.window.setShape(rects);
+    } catch (err) {
+      console.warn('Could not apply window shape:', err);
+    }
+  }
+
+  setShape(isCircle, radius) {
+    if (typeof isCircle === 'boolean') {
+      this.isCircle = isCircle;
+    }
+    if (radius !== undefined && radius !== null) {
+      this.radius = radius;
+    }
+    this.applyWindowShape();
   }
 
   getWindow() {

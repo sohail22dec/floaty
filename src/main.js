@@ -1,3 +1,13 @@
+const { app } = require('electron');
+
+// On Linux (especially Wayland/X11 with Mutter), GPU acceleration causes transparent
+// window regions/rounded corners to render as solid black.
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('enable-transparent-visuals');
+  app.commandLine.appendSwitch('disable-gpu');
+  app.disableHardwareAcceleration();
+}
+
 const AppManager = require('./main/app-manager');
 
 // Create and initialize the application

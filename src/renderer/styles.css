@@ -40,7 +40,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: transparent;
+  background: transparent !important;
   height: 100vh;
   overflow: hidden;
 }
@@ -52,6 +52,7 @@ body {
   font-size: 14px;
   line-height: 1.4;
   color: var(--text-primary);
+  background: transparent !important;
 }
 
 /* Disable animations when requested */
@@ -69,6 +70,7 @@ body.no-animations * {
   overflow: hidden;
   padding: 0;
   margin: 0;
+  background: transparent !important;
 }
 
 /* Toolbar - Floating auto-hiding pill (hidden while recording, reveals on hover) */

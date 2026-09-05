@@ -24,9 +24,15 @@ class IPCHandlers {
       
       if (w && h) {
         window.setSize(w, h, true);
+        this.windowManager.applyWindowShape();
         return true;
       }
       return false;
+    });
+
+    ipcMain.handle('update-shape', (event, { isCircle, radius }) => {
+      this.windowManager.setShape(isCircle, radius);
+      return true;
     });
 
     ipcMain.handle('get-window-position', () => {

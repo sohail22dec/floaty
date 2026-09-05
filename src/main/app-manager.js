@@ -79,17 +79,20 @@ class AppManager {
       }
     }
 
-    // Create the main window
-    this.windowManager.createWindow();
-    
-    // Setup menu
-    this.menuManager.createMenu();
-    
-    // Register global shortcuts
-    await this.shortcutManager.checkPermissions();
-    this.shortcutManager.registerShortcuts();
-    
-    console.log('Floating Cam is ready!');
+    // On Linux, delaying window creation by 300ms prevents the compositor race condition where transparency renders black
+    const initWindow = async () => {
+      this.windowManager.createWindow();
+      this.menuManager.createMenu();
+      await this.shortcutManager.checkPermissions();
+      this.shortcutManager.registerShortcuts();
+      console.log('Floaty is ready!');
+    };
+
+    if (process.platform === 'linux') {
+      setTimeout(initWindow, 300);
+    } else {
+      await initWindow();
+    }
   }
 
   onWindowAllClosed() {

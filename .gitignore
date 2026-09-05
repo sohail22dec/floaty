@@ -142,4 +142,6 @@ node_modules
 .DS_Store
 *.log
 out
+pnpm-lock.yaml
+pnpm-workspace.yaml
 

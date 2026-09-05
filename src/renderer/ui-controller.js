@@ -14,6 +14,11 @@ class UIController {
 
     this.initializeEventListeners();
     this.setupKeyboardShortcuts();
+
+    // Initialize window shape to eliminate black corner artifacts
+    setTimeout(() => {
+      window.floatingCam?.updateShape?.(this.state.isCircle, this.state.borderRadius);
+    }, 100);
   }
 
   initializeElements() {
@@ -302,6 +307,7 @@ class UIController {
     }
 
     this.updateCircleButton();
+    window.floatingCam?.updateShape?.(this.state.isCircle, this.state.borderRadius);
     if (save && window.settingsManager) {
       window.settingsManager.set('camera.isCircle', this.state.isCircle);
     }
@@ -326,8 +332,14 @@ class UIController {
   updateBorderRadius(value) {
     this.state.borderRadius = value;
 
-    if (!this.state.isCircle && this.elements.video) {
-      this.elements.video.style.borderRadius = `${value}%`;
+    if (!this.state.isCircle) {
+      if (this.elements.video) {
+        this.elements.video.style.borderRadius = `${value}%`;
+      }
+      if (this.elements.contentArea) {
+        this.elements.contentArea.style.borderRadius = `${value}%`;
+      }
+      window.floatingCam?.updateShape?.(false, value);
     }
 
     if (this.elements.radiusValue) {
@@ -552,6 +564,10 @@ class UIController {
     // Remove any error messages
     const errorElements = document.querySelectorAll('.error-message');
     errorElements.forEach(el => el.remove());
+  }
+
+  showStatus(message, type = 'info') {
+    this.showToast(message, type);
   }
 
   showToast(message, type = 'info') {

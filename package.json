@@ -26,8 +26,8 @@
     "cross-platform"
   ],
   "scripts": {
-    "start": "electron . --no-sandbox",
-    "dev": "NODE_ENV=development electron . --enable-logging --no-sandbox",
+    "start": "electron . --no-sandbox --enable-transparent-visuals --disable-gpu",
+    "dev": "NODE_ENV=development electron . --enable-logging --no-sandbox --enable-transparent-visuals --disable-gpu",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:mac-arm": "electron-builder --mac --arm64",
