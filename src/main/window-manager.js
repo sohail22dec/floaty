@@ -7,10 +7,11 @@ function getWindowShapeRects(width, height, isCircle, radiusVal = 16) {
   if (isCircle) {
     radius = Math.floor(Math.min(width, height) / 2);
   } else {
-    if (radiusVal > 0 && radiusVal <= 50) {
-      radius = Math.round((radiusVal / 100) * Math.min(width, height));
+    const num = Number(radiusVal);
+    if (!isNaN(num) && num >= 0 && num <= 50) {
+      radius = Math.round((num / 100) * Math.min(width, height));
     } else {
-      radius = Number(radiusVal) || 16;
+      radius = 16;
     }
   }
 

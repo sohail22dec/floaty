@@ -36,6 +36,13 @@ class IPCHandlers {
       return true;
     });
 
+    ipcMain.handle('get-shape', () => {
+      return {
+        isCircle: Boolean(this.windowManager.isCircle),
+        radius: this.windowManager.radius !== undefined ? this.windowManager.radius : 16
+      };
+    });
+
     ipcMain.handle('get-window-position', () => {
       const window = this.windowManager.getWindow();
       if (!window) return null;
@@ -96,8 +103,17 @@ class IPCHandlers {
     });
 
     ipcMain.handle('sync-setting', (event, { key, value }) => {
+      if (key === 'radius') {
+        const rad = Number(value);
+        if (!isNaN(rad)) {
+          this.windowManager.setShape(this.windowManager.isCircle, rad);
+        }
+      } else if (key === 'shape' && value) {
+        this.windowManager.setShape(value.isCircle, value.radius);
+      }
+
       const mainWindow = this.windowManager.getWindow();
-      if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow && !mainWindow.isDestroyed() && event.sender !== mainWindow.webContents) {
         mainWindow.webContents.send('setting-synced', { key, value });
       }
       const prefWin = this.windowManager.preferencesWindow;

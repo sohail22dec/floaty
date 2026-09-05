@@ -15,10 +15,26 @@ class UIController {
     this.initializeEventListeners();
     this.setupKeyboardShortcuts();
 
-    // Initialize window shape to eliminate black corner artifacts
-    setTimeout(() => {
-      window.floatingCam?.updateShape?.(this.state.isCircle, this.state.borderRadius);
-    }, 100);
+    // Initialize window shape from saved state or defaults
+    this.initShape();
+  }
+
+  async initShape() {
+    try {
+      const shape = await window.floatingCam?.getShape?.();
+      if (shape) {
+        if (typeof shape.radius === 'number') {
+          this.state.borderRadius = shape.radius;
+        }
+        if (shape.isCircle) {
+          await this.setCircle(true, false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load initial shape:', e);
+    }
+    this.updateBorderRadius(this.state.borderRadius, false);
   }
 
   initializeElements() {
@@ -119,6 +135,12 @@ class UIController {
       this.updateBorderRadius(e.target.value);
     });
 
+    window.addEventListener('resize', () => {
+      if (!this.state.isCircle) {
+        this.updateBorderRadius(this.state.borderRadius, false);
+      }
+    });
+
     // Size panel
     this.elements.settingsBtn?.addEventListener('click', () => {
       this.toggleSizePanel();
@@ -201,10 +223,10 @@ class UIController {
           this.setCircle(value.isCircle, false);
         }
         if (!value.isCircle && value.radius !== undefined) {
-          this.updateBorderRadius(value.radius);
+          this.updateBorderRadius(value.radius, false);
         }
       } else if (key === 'radius') {
-        this.updateBorderRadius(value);
+        this.updateBorderRadius(value, false);
       } else if (key === 'flip') {
         if (window.cameraManager && window.cameraManager.isFlipped !== value) {
           window.cameraManager.toggleFlip();
@@ -351,7 +373,7 @@ class UIController {
       }
 
       await window.floatingCam?.setWindowSize(rectW, rectH);
-      this.updateBorderRadius(this.state.borderRadius);
+      this.updateBorderRadius(this.state.borderRadius, false);
     }
 
     this.updateCircleButton();
@@ -391,27 +413,47 @@ class UIController {
   }
 
   updateBorderRadius(value, broadcast = true) {
-    this.state.borderRadius = value;
+    const val = Math.max(0, Math.min(50, parseInt(value, 10) || 0));
+    this.state.borderRadius = val;
+
+    const width = window.innerWidth || 240;
+    const height = window.innerHeight || 240;
+    const minDim = Math.min(width, height);
+    const radiusPx = Math.round((val / 100) * minDim);
 
     if (!this.state.isCircle) {
-      if (this.elements.video) {
-        this.elements.video.style.borderRadius = `${value}%`;
+      const radiusCss = `${radiusPx}px`;
+
+      if (this.elements.app) {
+        this.elements.app.style.borderRadius = radiusCss;
       }
       if (this.elements.contentArea) {
-        this.elements.contentArea.style.borderRadius = `${value}%`;
+        this.elements.contentArea.style.borderRadius = radiusCss;
       }
-      window.floatingCam?.updateShape?.(false, value);
+      if (this.elements.video) {
+        this.elements.video.style.borderRadius = radiusCss;
+      }
+      if (this.elements.controlsOverlay) {
+        this.elements.controlsOverlay.style.borderRadius = radiusCss;
+      }
+
+      window.floatingCam?.updateShape?.(false, val);
       if (broadcast) {
-        window.floatingCam?.syncSetting?.('radius', value);
+        window.floatingCam?.syncSetting?.('radius', val);
+      }
+      if (window.settingsManager) {
+        window.settingsManager.update({
+          'window.borderRadius': val
+        });
       }
     }
 
     if (this.elements.radiusValue) {
-      this.elements.radiusValue.textContent = `${value}%`;
+      this.elements.radiusValue.textContent = `${val}%`;
     }
 
     if (this.elements.radiusRange) {
-      this.elements.radiusRange.value = value;
+      this.elements.radiusRange.value = val;
     }
   }
 

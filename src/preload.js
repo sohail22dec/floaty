@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('floatingCam', {
 
   // Window shape (anti-black-corner masking)
   updateShape: (isCircle, radius) => ipcRenderer.invoke('update-shape', { isCircle, radius }),
+  getShape: () => ipcRenderer.invoke('get-shape'),
 
   // Dedicated Preferences Window & Realtime Setting Sync
   openPreferences: () => ipcRenderer.invoke('open-preferences'),

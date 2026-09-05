@@ -213,15 +213,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.floatingCam?.syncSetting('shape', { isCircle: false, radius });
   });
 
+  function saveRadius(val) {
+    localStorage.setItem('floaty_radius', val);
+    try {
+      const raw = localStorage.getItem('floating-cam-settings');
+      const parsed = raw ? JSON.parse(raw) : {};
+      parsed.window = parsed.window || {};
+      parsed.window.borderRadius = val;
+      localStorage.setItem('floating-cam-settings', JSON.stringify(parsed));
+    } catch (e) {
+      console.warn('Could not persist radius to floating-cam-settings', e);
+    }
+  }
+
   // Radius Slider
   const savedRadius = localStorage.getItem('floaty_radius') || '16';
   radiusSlider.value = savedRadius;
   radiusBadge.textContent = `${savedRadius}%`;
 
   radiusSlider.addEventListener('input', e => {
-    const val = parseInt(e.target.value, 10);
+    const val = Math.max(0, Math.min(50, parseInt(e.target.value, 10) || 0));
     radiusBadge.textContent = `${val}%`;
-    localStorage.setItem('floaty_radius', val);
+    saveRadius(val);
     if (!isCircleMode) {
       window.floatingCam?.syncSetting('radius', val);
     }
@@ -304,8 +317,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  async function syncCurrentShape() {
+    try {
+      const shape = await window.floatingCam?.getShape?.();
+      if (shape) {
+        if (typeof shape.radius === 'number') {
+          radiusSlider.value = shape.radius;
+          radiusBadge.textContent = `${shape.radius}%`;
+          saveRadius(shape.radius);
+        }
+        updateShapeUI(Boolean(shape.isCircle));
+      }
+    } catch (e) {
+      console.warn('Could not sync current shape in preferences:', e);
+    }
+  }
+
   // Initial runs
   await loadCameras();
   await syncCurrentSizeInputs();
+  await syncCurrentShape();
   await initAlwaysOnTop();
 });

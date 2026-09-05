@@ -82,6 +82,7 @@ body.no-animations * {
   padding: 0;
   margin: 0;
   background: transparent !important;
+  border-radius: var(--border-radius-lg);
 }
 
 /* Toolbar - Floating auto-hiding pill (hidden while recording, reveals on hover) */
@@ -197,7 +198,6 @@ video {
   border-radius: inherit;
   transform: scaleX(-1);
   transition:
-    border-radius var(--transition-normal),
     opacity var(--transition-normal),
     transform var(--transition-normal);
   background: #000;
@@ -207,7 +207,8 @@ video {
 /* Circle mode (Loom style) */
 body.circle #app,
 body.circle #contentArea,
-body.circle video {
+body.circle video,
+body.circle .controls-overlay {
   border-radius: 50% !important;
 }
 
