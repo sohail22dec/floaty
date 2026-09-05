@@ -1,23 +1,22 @@
 {
-  "name": "floating-cam",
+  "name": "floaty",
   "version": "1.0.0",
   "description": "Cross-platform floating always-on-top mirror camera window (macOS/Windows/Linux)",
   "main": "src/main.js",
   "license": "MIT",
   "type": "commonjs",
   "author": {
-    "name": "akhshyganesh",
-    "email": "akhshy.balakannan@gmail.com",
-    "url": "https://github.com/akhshyganesh"
+    "name": "Sohail",
+    "url": "https://github.com/sohail22dec"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/akhshyganesh/floating-cam.git"
+    "url": "https://github.com/sohail22dec/floaty.git"
   },
   "bugs": {
-    "url": "https://github.com/akhshyganesh/floating-cam/issues"
+    "url": "https://github.com/sohail22dec/floaty/issues"
   },
-  "homepage": "https://github.com/akhshyganesh/floating-cam#readme",
+  "homepage": "https://github.com/sohail22dec/floaty#readme",
   "keywords": [
     "electron",
     "camera",
@@ -53,8 +52,8 @@
     "prettier": "^3.2.5"
   },
   "build": {
-    "appId": "com.akhshyganesh.floating-cam",
-    "productName": "Floating Cam",
+    "appId": "com.sohail.floaty",
+    "productName": "Floaty",
     "compression": "maximum",
     "directories": {
       "output": "dist",
@@ -192,8 +191,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "akhshyganesh",
-        "repo": "floating-cam",
+        "owner": "sohail22dec",
+        "repo": "floaty",
         "private": false
       }
     ],

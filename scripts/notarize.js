@@ -15,7 +15,7 @@ exports.default = async function notarizing(context) {
   const appName = context.packager.appInfo.productFilename;
 
   return await notarize({
-    appBundleId: 'com.akhshyganesh.floating-cam',
+    appBundleId: 'com.sohail.floaty',
     appPath: `${appOutDir}/${appName}.app`,
     appleId: process.env.APPLE_ID,
     appleIdPassword: process.env.APPLE_ID_PASS,
