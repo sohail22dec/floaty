@@ -18,10 +18,10 @@ class IPCHandlers {
     ipcMain.handle('set-window-size', (event, { width, height }) => {
       const window = this.windowManager.getWindow();
       if (!window) return false;
-      
+
       const w = Math.max(160, Math.min(600, parseInt(width, 10)) || 0);
       const h = Math.max(160, Math.min(600, parseInt(height, 10)) || 0);
-      
+
       if (w && h) {
         window.setSize(w, h, true);
         this.windowManager.applyWindowShape();
@@ -45,7 +45,7 @@ class IPCHandlers {
     ipcMain.handle('set-window-position', (event, { x, y }) => {
       const window = this.windowManager.getWindow();
       if (!window) return false;
-      
+
       window.setPosition(x, y);
       return true;
     });
@@ -54,7 +54,7 @@ class IPCHandlers {
     ipcMain.handle('toggle-always-on-top', () => {
       const window = this.windowManager.getWindow();
       if (!window) return false;
-      
+
       const nextState = !window.isAlwaysOnTop();
       this.windowManager.setAlwaysOnTop(nextState);
       return nextState;
@@ -63,7 +63,7 @@ class IPCHandlers {
     ipcMain.handle('set-always-on-top', (event, flag) => {
       const window = this.windowManager.getWindow();
       if (!window) return false;
-      
+
       this.windowManager.setAlwaysOnTop(Boolean(flag));
       return window.isAlwaysOnTop();
     });

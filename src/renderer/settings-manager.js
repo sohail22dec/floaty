@@ -3,7 +3,7 @@ class SettingsManager {
     this.settings = this.getDefaultSettings();
     this.storageKey = 'floating-cam-settings';
     this.listeners = new Map();
-    
+
     this.loadSettings();
   }
 
@@ -19,7 +19,7 @@ class SettingsManager {
         opacity: 1.0,
         borderRadius: 16
       },
-      
+
       // Camera settings
       camera: {
         deviceId: null,
@@ -27,7 +27,7 @@ class SettingsManager {
         isCircle: false,
         autoStart: true
       },
-      
+
       // UI settings
       ui: {
         theme: 'dark',
@@ -35,7 +35,7 @@ class SettingsManager {
         animationsEnabled: true,
         compactMode: false
       },
-      
+
       // Keyboard shortcuts
       shortcuts: {
         toggleControls: 'Space',
@@ -44,13 +44,13 @@ class SettingsManager {
         cycleOpacity: 'O',
         toggleSize: 'S'
       },
-      
+
       // Privacy settings
       privacy: {
         saveSnapshots: false,
         snapshotLocation: null
       },
-      
+
       // Advanced settings
       advanced: {
         hardwareAcceleration: true,
@@ -86,7 +86,7 @@ class SettingsManager {
       console.error('Failed to load settings:', error);
       this.settings = this.getDefaultSettings();
     }
-    
+
     this.emit('settings-loaded', this.settings);
   }
 
@@ -105,7 +105,7 @@ class SettingsManager {
   // Deep merge settings to preserve structure
   mergeSettings(defaultSettings, userSettings) {
     const merged = { ...defaultSettings };
-    
+
     for (const [key, value] of Object.entries(userSettings)) {
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         merged[key] = { ...defaultSettings[key], ...value };
@@ -113,7 +113,7 @@ class SettingsManager {
         merged[key] = value;
       }
     }
-    
+
     return merged;
   }
 
@@ -121,7 +121,7 @@ class SettingsManager {
   get(path) {
     const keys = path.split('.');
     let current = this.settings;
-    
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
@@ -129,7 +129,7 @@ class SettingsManager {
         return undefined;
       }
     }
-    
+
     return current;
   }
 
@@ -138,7 +138,7 @@ class SettingsManager {
     const keys = path.split('.');
     const lastKey = keys.pop();
     let current = this.settings;
-    
+
     // Navigate to the parent object
     for (const key of keys) {
       if (!(key in current)) {
@@ -146,22 +146,22 @@ class SettingsManager {
       }
       current = current[key];
     }
-    
+
     // Set the value
     const oldValue = current[lastKey];
     current[lastKey] = value;
-    
+
     // Save and emit change
     this.saveSettings();
     this.emit('setting-changed', { path, value, oldValue });
-    
+
     return true;
   }
 
   // Update multiple settings at once
   update(updates) {
     let changed = false;
-    
+
     for (const [path, value] of Object.entries(updates)) {
       const oldValue = this.get(path);
       if (oldValue !== value) {
@@ -169,12 +169,12 @@ class SettingsManager {
         changed = true;
       }
     }
-    
+
     if (changed) {
       this.saveSettings();
       this.emit('settings-updated', updates);
     }
-    
+
     return changed;
   }
 
@@ -185,7 +185,7 @@ class SettingsManager {
     } else {
       this.settings = this.getDefaultSettings();
     }
-    
+
     this.saveSettings();
     this.emit('settings-reset', { section });
   }
@@ -218,19 +218,19 @@ class SettingsManager {
       if (windowSettings) {
         await this.applyWindowSettings(windowSettings);
       }
-      
+
       // Apply camera settings
       const cameraSettings = this.get('camera');
       if (cameraSettings) {
         this.applyCameraSettings(cameraSettings);
       }
-      
+
       // Apply UI settings
       const uiSettings = this.get('ui');
       if (uiSettings) {
         this.applyUISettings(uiSettings);
       }
-      
+
       this.emit('settings-applied', this.settings);
       return true;
     } catch (error) {
@@ -248,7 +248,7 @@ class SettingsManager {
         const h = Math.min(Math.max(settings.height, 160), 500);
         await window.floatingCam.setWindowSize(w, h);
       }
-      
+
       // Apply always on top
       if (typeof settings.alwaysOnTop === 'boolean') {
         if (window.floatingCam.setAlwaysOnTop) {
@@ -256,7 +256,7 @@ class SettingsManager {
         }
       }
     }
-    
+
     // Apply opacity
     if (settings.opacity && window.uiController) {
       const video = document.getElementById('video');
@@ -264,7 +264,7 @@ class SettingsManager {
         video.style.opacity = settings.opacity;
       }
     }
-    
+
     // Apply border radius
     if (settings.borderRadius && window.uiController) {
       window.uiController.updateBorderRadius(settings.borderRadius);
@@ -280,13 +280,13 @@ class SettingsManager {
           window.cameraManager.toggleFlip();
         }
       }
-      
+
       // Apply device selection
       if (settings.deviceId) {
         window.cameraManager.switchCamera(settings.deviceId);
       }
     }
-    
+
     // Apply circle mode
     if (typeof settings.isCircle === 'boolean' && window.uiController) {
       const isCurrentlyCircle = document.body.classList.contains('circle');
@@ -305,7 +305,7 @@ class SettingsManager {
     if (settings.theme) {
       document.body.setAttribute('data-theme', settings.theme);
     }
-    
+
     // Apply toolbar visibility
     if (typeof settings.showToolbar === 'boolean') {
       const toolbar = document.querySelector('.toolbar');
@@ -313,12 +313,12 @@ class SettingsManager {
         toolbar.style.display = settings.showToolbar ? 'flex' : 'none';
       }
     }
-    
+
     // Apply animations
     if (typeof settings.animationsEnabled === 'boolean') {
       document.body.classList.toggle('no-animations', !settings.animationsEnabled);
     }
-    
+
     // Apply compact mode
     if (typeof settings.compactMode === 'boolean') {
       document.body.classList.toggle('compact', settings.compactMode);
@@ -386,28 +386,28 @@ class SettingsManager {
   // Settings validation
   validateSettings(settings = this.settings) {
     const errors = [];
-    
+
     // Validate window settings
     if (settings.window) {
       const { width, height, opacity, borderRadius } = settings.window;
-      
+
       if (width && (width < 160 || width > 3840)) {
         errors.push('Window width must be between 160 and 3840 pixels');
       }
-      
+
       if (height && (height < 160 || height > 2160)) {
         errors.push('Window height must be between 160 and 2160 pixels');
       }
-      
+
       if (opacity && (opacity < 0.1 || opacity > 1)) {
         errors.push('Opacity must be between 0.1 and 1.0');
       }
-      
+
       if (borderRadius && (borderRadius < 0 || borderRadius > 50)) {
         errors.push('Border radius must be between 0 and 50 percent');
       }
     }
-    
+
     return errors;
   }
 }

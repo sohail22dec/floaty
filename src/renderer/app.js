@@ -9,45 +9,44 @@ class FloatingCamApp {
 
   async initialize() {
     if (this.isInitialized) return;
-    
+
     try {
       console.log('Initializing Floating Cam...');
-      
+
       // Initialize settings first
       this.settingsManager = new SettingsManager();
       window.settingsManager = this.settingsManager;
-      
+
       // Initialize UI controller
       this.uiController = new UIController();
       window.uiController = this.uiController;
-      
+
       // Initialize camera manager
       this.cameraManager = new CameraManager();
       window.cameraManager = this.cameraManager;
-      
+
       // Set up cross-component communication
       this.setupEventListeners();
-      
+
       // Apply saved settings
       await this.settingsManager.applySettings();
-      
+
       // Initialize UI
       this.uiController.initialize();
-      
+
       // Sync always-on-top state with UI
       if (window.floatingCam?.isAlwaysOnTop) {
         const isTop = await window.floatingCam.isAlwaysOnTop();
         this.uiController.updateAlwaysOnTopUI(isTop);
       }
-      
+
       // Start camera if auto-start is enabled
       if (this.settingsManager.get('camera.autoStart')) {
         await this.cameraManager.initialize();
       }
-      
+
       this.isInitialized = true;
       console.log('Floating Cam initialized successfully');
-      
     } catch (error) {
       console.error('Failed to initialize Floating Cam:', error);
       this.showInitializationError(error);
@@ -56,7 +55,7 @@ class FloatingCamApp {
 
   setupEventListeners() {
     // Settings events
-    this.settingsManager.on('setting-changed', (event) => {
+    this.settingsManager.on('setting-changed', event => {
       this.handleSettingChange(event);
     });
 
@@ -68,7 +67,7 @@ class FloatingCamApp {
       }
     });
 
-    window.addEventListener('camera-flipped', (event) => {
+    window.addEventListener('camera-flipped', event => {
       // Save flip state
       this.settingsManager.set('camera.isFlipped', event.detail.isFlipped);
     });
@@ -94,7 +93,7 @@ class FloatingCamApp {
 
     // Handle IPC messages from main process
     if (window.electronAPI) {
-      window.electronAPI.onMessage((message) => {
+      window.electronAPI.onMessage(message => {
         this.handleIPCMessage(message);
       });
     }
@@ -118,7 +117,7 @@ class FloatingCamApp {
 
   async handleSettingChange(event) {
     const { path, value } = event;
-    
+
     try {
       // Handle specific setting changes
       switch (path) {
@@ -126,25 +125,25 @@ class FloatingCamApp {
         case 'window.height':
           await this.applyWindowSize();
           break;
-          
+
         case 'window.opacity':
           this.applyOpacity(value);
           break;
-          
+
         case 'window.borderRadius':
           this.uiController.updateBorderRadius(value);
           break;
-          
+
         case 'camera.deviceId':
           if (value && this.cameraManager.isActive()) {
             this.cameraManager.switchCamera(value);
           }
           break;
-          
+
         case 'ui.theme':
           this.applyTheme(value);
           break;
-          
+
         case 'ui.showToolbar':
           this.toggleToolbar(value);
           break;
@@ -159,31 +158,31 @@ class FloatingCamApp {
       case 'show-controls':
         this.uiController.showControls();
         break;
-        
+
       case 'reload-camera':
         this.cameraManager.initialize();
         break;
-        
+
       case 'toggle-flip':
         this.cameraManager.toggleFlip();
         break;
-        
+
       case 'toggle-circle':
         this.uiController.toggleCircle();
         break;
-        
+
       case 'show-about':
         this.showAboutDialog();
         break;
-        
+
       case 'show-preferences':
         this.showPreferences();
         break;
-        
+
       case 'show-shortcuts':
         this.showShortcuts();
         break;
-        
+
       case 'always-on-top-changed':
         this.uiController.updateAlwaysOnTopUI(message.value);
         this.settingsManager.set('window.alwaysOnTop', message.value);
@@ -229,7 +228,7 @@ class FloatingCamApp {
   async applyWindowSize() {
     const width = this.settingsManager.get('window.width');
     const height = this.settingsManager.get('window.height');
-    
+
     if (width && height && window.floatingCam) {
       const w = Math.min(Math.max(width, 160), 500);
       const h = Math.min(Math.max(height, 160), 500);
@@ -266,7 +265,7 @@ class FloatingCamApp {
         <button onclick="location.reload()">Retry</button>
       </div>
     `;
-    
+
     document.body.appendChild(errorDiv);
   }
 
@@ -291,7 +290,7 @@ class FloatingCamApp {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(aboutDialog);
   }
 
@@ -300,26 +299,26 @@ class FloatingCamApp {
     const prefsDialog = document.createElement('div');
     prefsDialog.className = 'modal-overlay preferences-dialog';
     prefsDialog.innerHTML = this.createPreferencesHTML();
-    
+
     // Add click outside to close
-    prefsDialog.addEventListener('click', (e) => {
+    prefsDialog.addEventListener('click', e => {
       if (e.target === prefsDialog) {
         prefsDialog.remove();
       }
     });
-    
+
     // Add escape key to close
-    const handleEscape = (e) => {
+    const handleEscape = e => {
       if (e.key === 'Escape') {
         prefsDialog.remove();
         document.removeEventListener('keydown', handleEscape);
       }
     };
     document.addEventListener('keydown', handleEscape);
-    
+
     document.body.appendChild(prefsDialog);
     this.initializePreferencesHandlers(prefsDialog);
-    
+
     // Focus the modal for accessibility
     setTimeout(() => {
       const firstButton = prefsDialog.querySelector('.tab-btn');
@@ -329,7 +328,7 @@ class FloatingCamApp {
 
   createPreferencesHTML() {
     const settings = this.settingsManager.settings;
-    
+
     return `
       <div class="modal-content">
         <div class="modal-header">
@@ -421,11 +420,11 @@ class FloatingCamApp {
     dialog.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const tabId = btn.dataset.tab;
-        
+
         // Update tab buttons
         dialog.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
+
         // Update tab content
         dialog.querySelectorAll('.tab-content').forEach(content => {
           content.style.display = content.id === tabId ? 'block' : 'none';
@@ -494,7 +493,7 @@ class FloatingCamApp {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(shortcutsDialog);
   }
 
@@ -509,12 +508,12 @@ class FloatingCamApp {
     const settings = this.settingsManager.export();
     const blob = new Blob([settings], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement('a');
     a.href = url;
     a.download = 'floating-cam-settings.json';
     a.click();
-    
+
     URL.revokeObjectURL(url);
   }
 
@@ -522,12 +521,12 @@ class FloatingCamApp {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    
-    input.onchange = (e) => {
+
+    input.onchange = e => {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = e => {
           try {
             const success = this.settingsManager.import(e.target.result);
             if (success) {
@@ -543,7 +542,7 @@ class FloatingCamApp {
         reader.readAsText(file);
       }
     };
-    
+
     input.click();
   }
 
@@ -552,7 +551,7 @@ class FloatingCamApp {
     if (this.cameraManager) {
       this.cameraManager.stopCamera();
     }
-    
+
     // Save current state
     this.saveWindowSize();
   }

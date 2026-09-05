@@ -149,7 +149,7 @@ class UIController {
     });
 
     // Device selection
-    this.elements.deviceSelect?.addEventListener('change', (e) => {
+    this.elements.deviceSelect?.addEventListener('change', e => {
       if (e.target.value && window.cameraManager) {
         window.cameraManager.switchCamera(e.target.value);
       }
@@ -300,8 +300,10 @@ class UIController {
       }
     } else {
       // Restore previous rectangular size and custom radius
-      const rectW = this.savedRectSize?.width || window.settingsManager?.get('window.rectWidth') || 320;
-      const rectH = this.savedRectSize?.height || window.settingsManager?.get('window.rectHeight') || 240;
+      const rectW =
+        this.savedRectSize?.width || window.settingsManager?.get('window.rectWidth') || 320;
+      const rectH =
+        this.savedRectSize?.height || window.settingsManager?.get('window.rectHeight') || 240;
       await window.floatingCam?.setWindowSize(rectW, rectH);
       this.updateBorderRadius(this.state.borderRadius);
     }
@@ -593,7 +595,7 @@ class UIController {
     this.updateBorderRadius(this.state.borderRadius);
     this.updateOpacityButton();
     this.updateCircleButton();
-    
+
     // Initialize camera manager reference
     if (window.cameraManager) {
       this.updateFlipButton(window.cameraManager.getFlipState());
@@ -612,7 +614,7 @@ class UIController {
       }
 
       this.showToast('Taking snapshot...', 'info');
-      
+
       const blob = await window.cameraManager.takeSnapshot();
       if (blob) {
         // Create download link
@@ -621,7 +623,7 @@ class UIController {
         a.href = url;
         a.download = `floating-cam-snapshot-${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
         a.click();
-        
+
         URL.revokeObjectURL(url);
         this.showToast('Snapshot saved!', 'success');
       } else {
@@ -647,7 +649,7 @@ class UIController {
     try {
       if (window.cameraManager) {
         // Listen for device updates
-        window.addEventListener('camera-devices-updated', (e) => {
+        window.addEventListener('camera-devices-updated', e => {
           this.updateDeviceList(e.detail.devices);
         });
 
@@ -706,7 +708,9 @@ class UIController {
     this.state.isAlwaysOnTop = isTop;
     if (this.elements.toolbarPinBtn) {
       this.elements.toolbarPinBtn.classList.toggle('active', isTop);
-      this.elements.toolbarPinBtn.title = isTop ? 'Always on Top: ON (Sticky)' : 'Always on Top: OFF';
+      this.elements.toolbarPinBtn.title = isTop
+        ? 'Always on Top: ON (Sticky)'
+        : 'Always on Top: OFF';
     }
     if (this.elements.pinBtn) {
       this.elements.pinBtn.classList.toggle('active', isTop);
@@ -724,7 +728,10 @@ class UIController {
         label.textContent = this.state.toolbarHidden ? 'Show Bar' : 'Hide Bar';
       }
     }
-    this.showStatus(this.state.toolbarHidden ? 'Top bar hidden (Press H to restore)' : 'Top bar visible', 'info');
+    this.showStatus(
+      this.state.toolbarHidden ? 'Top bar hidden (Press H to restore)' : 'Top bar visible',
+      'info'
+    );
   }
 
   setupWindowDragging() {
@@ -737,10 +744,11 @@ class UIController {
     const dragTarget = this.elements.contentArea || this.elements.app;
     if (!dragTarget) return;
 
-    dragTarget.addEventListener('mousedown', async (e) => {
+    dragTarget.addEventListener('mousedown', async e => {
       // Don't drag if clicking buttons, inputs, controls overlay or resize handle
       if (e.button !== 0) return;
-      if (e.target.closest('button, input, select, #resizeHandle, .controls-overlay, .toolbar')) return;
+      if (e.target.closest('button, input, select, #resizeHandle, .controls-overlay, .toolbar'))
+        return;
 
       try {
         const pos = await window.floatingCam?.getWindowPosition();
@@ -756,7 +764,7 @@ class UIController {
       }
     });
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', e => {
       if (!isDragging) return;
       const dx = e.screenX - startScreenX;
       const dy = e.screenY - startScreenY;

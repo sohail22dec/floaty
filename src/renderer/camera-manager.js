@@ -8,7 +8,7 @@ class CameraManager {
     this.isLoading = false;
     this.retryCount = 0;
     this.maxRetries = 3;
-    
+
     this.initializeEventListeners();
   }
 
@@ -28,7 +28,7 @@ class CameraManager {
         this.onLoadedData();
       });
 
-      this.videoElement.addEventListener('error', (e) => {
+      this.videoElement.addEventListener('error', e => {
         this.onError(e);
       });
 
@@ -55,11 +55,13 @@ class CameraManager {
       console.log('All enumerated devices:', JSON.stringify(allDevices));
       this.devices = allDevices.filter(device => device.kind === 'videoinput');
       console.log('Video devices count:', this.devices.length, JSON.stringify(this.devices));
-      
+
       // Dispatch event for UI to update device list
-      window.dispatchEvent(new CustomEvent('camera-devices-updated', { 
-        detail: { devices: this.devices } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('camera-devices-updated', {
+          detail: { devices: this.devices }
+        })
+      );
     } catch (error) {
       console.error('Failed to enumerate devices:', error);
       throw error;
@@ -114,10 +116,11 @@ class CameraManager {
       this.hideError();
 
       // Dispatch success event
-      window.dispatchEvent(new CustomEvent('camera-started', { 
-        detail: { deviceId: this.currentDeviceId } 
-      }));
-
+      window.dispatchEvent(
+        new CustomEvent('camera-started', {
+          detail: { deviceId: this.currentDeviceId }
+        })
+      );
     } catch (error) {
       console.error('Failed to start camera:', error);
 
@@ -127,7 +130,10 @@ class CameraManager {
         setTimeout(() => this.startCamera(deviceId), 1000 * this.retryCount);
       } else {
         let msg = 'Camera unavailable or permission denied';
-        if (error.name === 'NotReadableError' || (error.message && error.message.includes('Could not start video source'))) {
+        if (
+          error.name === 'NotReadableError' ||
+          (error.message && error.message.includes('Could not start video source'))
+        ) {
           msg = 'Camera is busy (in use by another app like OBS Studio, Zoom, or Discord)';
         } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
           msg = 'Camera permission denied';
@@ -138,9 +144,11 @@ class CameraManager {
         }
 
         this.showError(msg);
-        window.dispatchEvent(new CustomEvent('camera-error', { 
-          detail: { error: msg } 
-        }));
+        window.dispatchEvent(
+          new CustomEvent('camera-error', {
+            detail: { error: msg }
+          })
+        );
       }
     } finally {
       this.isLoading = false;
@@ -153,13 +161,13 @@ class CameraManager {
       this.stream.getTracks().forEach(track => track.stop());
       this.stream = null;
     }
-    
+
     if (this.videoElement) {
       this.videoElement.srcObject = null;
     }
-    
+
     this.currentDeviceId = null;
-    
+
     // Dispatch stop event
     window.dispatchEvent(new CustomEvent('camera-stopped'));
   }
@@ -173,11 +181,13 @@ class CameraManager {
   toggleFlip() {
     this.isFlipped = !this.isFlipped;
     this.applyFlip();
-    
+
     // Dispatch flip event
-    window.dispatchEvent(new CustomEvent('camera-flipped', { 
-      detail: { isFlipped: this.isFlipped } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent('camera-flipped', {
+        detail: { isFlipped: this.isFlipped }
+      })
+    );
   }
 
   applyFlip() {
@@ -193,27 +203,29 @@ class CameraManager {
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    
+
     canvas.width = this.videoElement.videoWidth;
     canvas.height = this.videoElement.videoHeight;
-    
+
     // Apply flip if needed
     if (this.isFlipped) {
       context.scale(-1, 1);
       context.translate(-canvas.width, 0);
     }
-    
+
     context.drawImage(this.videoElement, 0, 0);
-    
-    return new Promise((resolve) => {
+
+    return new Promise(resolve => {
       canvas.toBlob(resolve, 'image/png');
     });
   }
 
   showLoading(show) {
-    window.dispatchEvent(new CustomEvent('camera-loading', { 
-      detail: { isLoading: show } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent('camera-loading', {
+        detail: { isLoading: show }
+      })
+    );
   }
 
   showError(message) {
@@ -229,7 +241,7 @@ class CameraManager {
       `;
       const retryBtn = errorDiv.querySelector('.retry-btn');
       if (retryBtn) {
-        retryBtn.addEventListener('click', async (e) => {
+        retryBtn.addEventListener('click', async e => {
           e.stopPropagation();
           retryBtn.textContent = 'Connecting...';
           retryBtn.disabled = true;

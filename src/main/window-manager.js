@@ -74,7 +74,7 @@ class WindowManager {
 
     // Enhanced window properties for floating behavior
     this.setAlwaysOnTop(true);
-    
+
     // Hide dock icon on macOS for cleaner experience
     if (process.platform === 'darwin') {
       app.dock.hide();
@@ -95,7 +95,7 @@ class WindowManager {
     });
 
     // Prevent window from being destroyed when closed on macOS
-    this.window.on('close', (event) => {
+    this.window.on('close', event => {
       if (process.platform === 'darwin' && !this.isQuitting) {
         event.preventDefault();
         this.window.hide();

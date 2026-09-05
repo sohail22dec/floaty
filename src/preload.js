@@ -8,35 +8,35 @@ contextBridge.exposeInMainWorld('floatingCam', {
   setWindowSize: (width, height) => ipcRenderer.invoke('set-window-size', { width, height }),
   getWindowPosition: () => ipcRenderer.invoke('get-window-position'),
   setWindowPosition: (x, y) => ipcRenderer.invoke('set-window-position', { x, y }),
-  
+
   // Window state
   toggleAlwaysOnTop: () => ipcRenderer.invoke('toggle-always-on-top'),
-  setAlwaysOnTop: (flag) => ipcRenderer.invoke('set-always-on-top', flag),
+  setAlwaysOnTop: flag => ipcRenderer.invoke('set-always-on-top', flag),
   isAlwaysOnTop: () => ipcRenderer.invoke('is-always-on-top'),
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
   hideWindow: () => ipcRenderer.invoke('hide-window'),
   showWindow: () => ipcRenderer.invoke('show-window'),
-  
+
   // App control
   quitApp: () => ipcRenderer.invoke('quit-app'),
   getVersion: () => ipcRenderer.invoke('get-app-version'),
-  
+
   // Settings
   getSettings: () => ipcRenderer.invoke('get-settings'),
-  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
-  
+  saveSettings: settings => ipcRenderer.invoke('save-settings', settings),
+
   // Camera
-  getCameraDevices: () => ipcRenderer.invoke('get-camera-devices'),
+  getCameraDevices: () => ipcRenderer.invoke('get-camera-devices')
 });
 
 // Expose a limited API for receiving messages from main process
 contextBridge.exposeInMainWorld('electronAPI', {
-  onMessage: (callback) => {
+  onMessage: callback => {
     ipcRenderer.on('message', (event, data) => callback(data));
   },
-  
+
   // Remove listeners
-  removeAllListeners: (channel) => {
+  removeAllListeners: channel => {
     ipcRenderer.removeAllListeners(channel);
   }
 });
@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'development') {
   contextBridge.exposeInMainWorld('devTools', {
     openDevTools: () => ipcRenderer.invoke('open-dev-tools'),
     reload: () => ipcRenderer.invoke('reload-window'),
-    
+
     // Console methods for debugging
     log: (...args) => console.log('[DEV]', ...args),
     error: (...args) => console.error('[DEV]', ...args),

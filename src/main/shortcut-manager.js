@@ -8,52 +8,80 @@ class ShortcutManager {
 
   registerShortcuts() {
     // Development shortcuts
-    this.registerShortcut('CommandOrControl+Alt+I', () => {
-      const window = this.windowManager.getWindow();
-      if (window) {
-        if (window.webContents.isDevToolsOpened()) {
-          window.webContents.closeDevTools();
-        } else {
-          window.webContents.openDevTools({ mode: 'detach' });
+    this.registerShortcut(
+      'CommandOrControl+Alt+I',
+      () => {
+        const window = this.windowManager.getWindow();
+        if (window) {
+          if (window.webContents.isDevToolsOpened()) {
+            window.webContents.closeDevTools();
+          } else {
+            window.webContents.openDevTools({ mode: 'detach' });
+          }
         }
-      }
-    }, 'Toggle Developer Tools');
+      },
+      'Toggle Developer Tools'
+    );
 
     // Refresh camera / reload
-    this.registerShortcut('CommandOrControl+Alt+R', () => {
-      const window = this.windowManager.getWindow();
-      if (window) {
-        window.webContents.reloadIgnoringCache();
-      }
-    }, 'Reload Camera');
+    this.registerShortcut(
+      'CommandOrControl+Alt+R',
+      () => {
+        const window = this.windowManager.getWindow();
+        if (window) {
+          window.webContents.reloadIgnoringCache();
+        }
+      },
+      'Reload Camera'
+    );
 
     // Toggle window visibility
-    this.registerShortcut('CommandOrControl+Alt+H', () => {
-      this.windowManager.toggleWindow();
-    }, 'Toggle Window Visibility');
+    this.registerShortcut(
+      'CommandOrControl+Alt+H',
+      () => {
+        this.windowManager.toggleWindow();
+      },
+      'Toggle Window Visibility'
+    );
 
     // Toggle always on top (P for Pin, avoids Ubuntu Ctrl+Alt+T terminal shortcut conflict)
-    this.registerShortcut('CommandOrControl+Alt+P', () => {
-      const window = this.windowManager.getWindow();
-      if (window) {
-        const nextState = !window.isAlwaysOnTop();
-        this.windowManager.setAlwaysOnTop(nextState);
-        window.webContents.send('message', { type: 'always-on-top-changed', value: nextState });
-      }
-    }, 'Toggle Always On Top');
+    this.registerShortcut(
+      'CommandOrControl+Alt+P',
+      () => {
+        const window = this.windowManager.getWindow();
+        if (window) {
+          const nextState = !window.isAlwaysOnTop();
+          this.windowManager.setAlwaysOnTop(nextState);
+          window.webContents.send('message', { type: 'always-on-top-changed', value: nextState });
+        }
+      },
+      'Toggle Always On Top'
+    );
 
     // Quick size presets
-    this.registerShortcut('CommandOrControl+Alt+1', () => {
-      this.setWindowPreset(300, 300); // 1:1
-    }, 'Set 1:1 Aspect Ratio');
+    this.registerShortcut(
+      'CommandOrControl+Alt+1',
+      () => {
+        this.setWindowPreset(300, 300); // 1:1
+      },
+      'Set 1:1 Aspect Ratio'
+    );
 
-    this.registerShortcut('CommandOrControl+Alt+2', () => {
-      this.setWindowPreset(400, 300); // 4:3
-    }, 'Set 4:3 Aspect Ratio');
+    this.registerShortcut(
+      'CommandOrControl+Alt+2',
+      () => {
+        this.setWindowPreset(400, 300); // 4:3
+      },
+      'Set 4:3 Aspect Ratio'
+    );
 
-    this.registerShortcut('CommandOrControl+Alt+3', () => {
-      this.setWindowPreset(400, 225); // 16:9
-    }, 'Set 16:9 Aspect Ratio');
+    this.registerShortcut(
+      'CommandOrControl+Alt+3',
+      () => {
+        this.setWindowPreset(400, 225); // 16:9
+      },
+      'Set 16:9 Aspect Ratio'
+    );
   }
 
   registerShortcut(accelerator, callback, description = '') {

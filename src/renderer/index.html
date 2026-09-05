@@ -1,136 +1,338 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" />
-    <title>Floating Cam</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+    />
+    <title>Floaty</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body data-theme="dark">
     <div id="app">
-      <!-- Toolbar -->
-      <div class="toolbar" id="drag-region" role="toolbar" aria-label="Floating Cam Controls">
-        <span class="title">Floating Cam</span>
-        <button id="toolbarCircleBtn" title="Toggle Circle Bubble (Loom style) [C]" aria-label="Toggle Circle Bubble" class="toggle-btn">
-          ⭕
+      <!-- Floating Hover Toolbar -->
+      <div class="toolbar" id="drag-region" role="toolbar" aria-label="Floaty Controls">
+        <span class="title">Floaty</span>
+        <button
+          id="toolbarCircleBtn"
+          title="Toggle Circle Bubble [C]"
+          aria-label="Toggle Circle Bubble"
+          class="toggle-btn"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9"></circle>
+          </svg>
         </button>
-        <button id="toolbarPinBtn" title="Always on Top (Sticky) [Ctrl+Alt+P]" aria-label="Always on Top" class="toggle-btn active">
-          📌
+        <button
+          id="toolbarPinBtn"
+          title="Always on Top [Ctrl+Alt+P]"
+          aria-label="Always on Top"
+          class="toggle-btn active"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="17" x2="12" y2="22"></line>
+            <path
+              d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"
+            ></path>
+          </svg>
         </button>
-        <button id="toggleBtn" title="Controls / Settings [Space]" aria-label="Toggle Controls" class="toggle-btn">
-          ⚙️
+        <button id="toggleBtn" title="Controls & Settings [Space]" aria-label="Toggle Controls" class="toggle-btn">
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+            ></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
         </button>
       </div>
 
       <!-- Main content area -->
       <div id="contentArea">
         <video id="video" autoplay playsinline muted></video>
-        
-        <!-- Loading overlay (created dynamically) -->
-        
-        <!-- Error messages (created dynamically) -->
       </div>
 
-      <!-- Controls Overlay -->
+      <!-- Compact Modern Controls Overlay -->
       <div id="controlsOverlay" class="controls-overlay" hidden>
         <div class="overlay-content">
           <div class="overlay-header">
-            <h3>Controls</h3>
-            <button id="closeOverlayBtn" class="close-btn" aria-label="Close">×</button>
-          </div>
-          
-          <div class="controls-grid">
-            <button id="pinBtn" title="Toggle Always on Top" aria-label="Toggle Always on Top" class="control-btn active">
-              <span class="icon">📌</span>
-              <span>Sticky</span>
-            </button>
-
-            <button id="flipBtn" title="Flip Horizontal" aria-label="Flip Horizontal" class="control-btn">
-              <span class="icon">🔄</span>
-              <span>Flip</span>
-            </button>
-            
-            <button id="circleBtn" title="Toggle Circle" aria-label="Toggle Circle" class="control-btn">
-              <span class="icon">⭕</span>
-              <span>Circle</span>
-            </button>
-            
-            <button id="opacityBtn" title="Cycle Opacity" aria-label="Cycle Opacity" class="control-btn">
-              <span class="icon">👁️</span>
-              <span>Opacity</span>
-            </button>
-            
-            <button id="settingsBtn" title="Resize / Settings" aria-label="Resize / Settings" class="control-btn">
-              <span class="icon">📐</span>
-              <span>Size</span>
-            </button>
-
-            <button id="hideBarBtn" title="Hide/Show Top Bar [H]" aria-label="Hide Top Bar" class="control-btn">
-              <span class="icon">🙈</span>
-              <span>Hide Bar</span>
-            </button>
-          </div>
-
-          <!-- Border radius control -->
-          <div class="radius-control">
-            <label for="radiusRange">Border Radius</label>
-            <input id="radiusRange" type="range" min="0" max="50" value="16" title="Border Radius %" aria-label="Border Radius" />
-            <span id="radiusValue">16%</span>
-          </div>
-
-          <!-- Device selection (will be populated dynamically) -->
-          <div id="deviceSelection" class="device-selection" style="display: none;">
-            <label for="deviceSelect">Camera:</label>
-            <select id="deviceSelect" aria-label="Select Camera">
-              <option value="">Select camera...</option>
-            </select>
-          </div>
-
-          <!-- Size Panel -->
-          <div id="sizePanel" class="size-panel" hidden>
-            <div class="panel-header">
-              <h4>Window Size</h4>
+            <div class="header-brand">
+              <span class="header-dot"></span>
+              <h3>Floaty Settings</h3>
             </div>
-            
-            <div class="row dims">
-              <label for="widthInput">W</label>
-              <input id="widthInput" type="number" min="160" step="10" aria-label="Width" />
-              <label for="heightInput">H</label>
-              <input id="heightInput" type="number" min="160" step="10" aria-label="Height" />
-              <button id="applySizeBtn" aria-label="Apply Size">Apply</button>
-            </div>
-            
-            <div class="presets row">
-              <button data-preset="1:1" title="Square (1:1)">1:1</button>
-              <button data-preset="4:3" title="Standard (4:3)">4:3</button>
-              <button data-preset="16:9" title="Widescreen (16:9)">16:9</button>
-              <button data-preset="9:16" title="Portrait (9:16)">9:16</button>
-            </div>
+            <button id="closeOverlayBtn" class="close-btn" aria-label="Close">
+              <svg
+                viewBox="0 0 24 24"
+                width="13"
+                height="13"
+                stroke="currentColor"
+                stroke-width="2.5"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
-          <!-- Quick actions -->
-          <div class="quick-actions">
-            <button id="snapshotBtn" title="Take Snapshot" aria-label="Take Snapshot" class="action-btn">
-              📸 Snapshot
-            </button>
-            <button id="preferencesBtn" title="Preferences" aria-label="Preferences" class="action-btn">
-              ⚙️ Preferences
-            </button>
+          <div class="overlay-scroll-body">
+            <!-- 3-Column Compact Quick Action Grid -->
+            <div class="controls-grid">
+              <button
+                id="pinBtn"
+                title="Toggle Always on Top"
+                aria-label="Toggle Always on Top"
+                class="control-btn active"
+              >
+                <span class="icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="12" y1="17" x2="12" y2="22"></line>
+                    <path
+                      d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"
+                    ></path>
+                  </svg>
+                </span>
+                <span>Sticky</span>
+              </button>
+
+              <button id="flipBtn" title="Flip Horizontal" aria-label="Flip Horizontal" class="control-btn">
+                <span class="icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m3 12 4-4v3h10V8l4 4-4 4v-3H7v3z"></path>
+                  </svg>
+                </span>
+                <span>Flip</span>
+              </button>
+
+              <button id="circleBtn" title="Toggle Circle" aria-label="Toggle Circle" class="control-btn">
+                <span class="icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                  </svg>
+                </span>
+                <span>Circle</span>
+              </button>
+
+              <button id="opacityBtn" title="Cycle Opacity" aria-label="Cycle Opacity" class="control-btn">
+                <span class="icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </span>
+                <span>Opacity</span>
+              </button>
+
+              <button id="settingsBtn" title="Resize / Presets" aria-label="Resize / Presets" class="control-btn">
+                <span class="icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="m21 3-7 7"></path>
+                    <path d="M9 21H3v-6"></path>
+                    <path d="m3 21 7-7"></path>
+                  </svg>
+                </span>
+                <span>Size</span>
+              </button>
+
+              <button id="hideBarBtn" title="Hide/Show Top Bar [H]" aria-label="Hide Top Bar" class="control-btn">
+                <span class="icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </span>
+                <span>Hide Bar</span>
+              </button>
+            </div>
+
+            <!-- Sleek Corner Radius Slider -->
+            <div class="radius-control">
+              <div class="radius-header">
+                <label for="radiusRange">Corner Rounding</label>
+                <span id="radiusValue">16%</span>
+              </div>
+              <input
+                id="radiusRange"
+                type="range"
+                min="0"
+                max="50"
+                value="16"
+                title="Border Radius %"
+                aria-label="Border Radius"
+              />
+            </div>
+
+            <!-- Camera Selection -->
+            <div id="deviceSelection" class="device-selection" style="display: none">
+              <label for="deviceSelect">Camera Source</label>
+              <div class="select-wrapper">
+                <select id="deviceSelect" aria-label="Select Camera">
+                  <option value="">Select camera...</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Aspect Ratio & Size Panel -->
+            <div id="sizePanel" class="size-panel" hidden>
+              <div class="panel-header">
+                <h4>Aspect Ratio Presets</h4>
+              </div>
+              <div class="presets row">
+                <button data-preset="1:1" title="Square (1:1)">1:1</button>
+                <button data-preset="4:3" title="Standard (4:3)">4:3</button>
+                <button data-preset="16:9" title="Widescreen (16:9)">16:9</button>
+                <button data-preset="9:16" title="Portrait (9:16)">9:16</button>
+              </div>
+              <div class="row dims">
+                <div class="input-group">
+                  <label for="widthInput">W</label>
+                  <input id="widthInput" type="number" min="160" step="10" aria-label="Width" />
+                </div>
+                <div class="input-group">
+                  <label for="heightInput">H</label>
+                  <input id="heightInput" type="number" min="160" step="10" aria-label="Height" />
+                </div>
+                <button id="applySizeBtn" aria-label="Apply Size">Set</button>
+              </div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="quick-actions">
+              <button id="snapshotBtn" title="Take Snapshot" aria-label="Take Snapshot" class="action-btn">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="13"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
+                  ></path>
+                  <circle cx="12" cy="13" r="3"></circle>
+                </svg>
+                <span>Snapshot</span>
+              </button>
+              <button
+                id="preferencesBtn"
+                title="Preferences"
+                aria-label="Preferences"
+                class="action-btn"
+                style="display: none"
+              >
+                <span>Options</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Resize handle -->
       <div id="resizeHandle" aria-label="Resize Handle" title="Drag to resize"></div>
-      
+
       <!-- Status indicator -->
-      <div id="statusIndicator" class="status-indicator" style="display: none;">
+      <div id="statusIndicator" class="status-indicator" style="display: none">
         <span id="statusText"></span>
       </div>
     </div>
 
-    <!-- Load modular scripts -->
+    <!-- Load scripts -->
     <script src="camera-manager.js"></script>
     <script src="ui-controller.js"></script>
     <script src="settings-manager.js"></script>
